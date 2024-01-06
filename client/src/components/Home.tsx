@@ -9,6 +9,9 @@ import image from '../static/1.png';
 import image2 from '../static/2.jpg';
 
 const useStyles = makeStyles((theme) => ({
+    mainContainer: {
+      overflow: 'auto'
+    },
     box: {
       display: 'flex', 
       justifyContent: 'center',
@@ -21,11 +24,15 @@ const useStyles = makeStyles((theme) => ({
     },
     box2: { 
       background: '#bbdefb',
-      padding: '25px 500px 25px 500px',
+      width: "100%",
+      height: "100%",
+      padding: '2vw 10vw 2vw 10vw',
       boxSizing: 'border-box',
     },
     box3: {
       background: '#e3f2fd',
+      width: "100%",
+      height: "100%",
       padding: '25px',
       flexDirection: 'row',
       boxSizing: 'border-box',
@@ -46,6 +53,7 @@ const useStyles = makeStyles((theme) => ({
       flexDirection: 'column',
       position: 'relative',
       zIndex: 3,
+      padding: '2.5vw'
     },
     paperBox: {
       // Adjust padding to be more dynamic
@@ -55,12 +63,13 @@ const useStyles = makeStyles((theme) => ({
       fontSize: '1vw'
     },
     welcomeText: {
+      fontSize: '3.5vw',
       fontWeight: 'bold',
       fontFamily: 'Times New Roman, Times, serif'
     },
     introText: {
-      fontSize: '20px',
-      margin: '50px'
+      fontSize: '1vw',
+      padding: '2vw'
     },
     rightPaper: {
       display: 'flex',
@@ -70,9 +79,9 @@ const useStyles = makeStyles((theme) => ({
       borderRadius: '100px 100px 100px 5px',
       width: '10vw',
       height: '5vw',
-      boxShadow: '#bbdefb -21px 25px 5px',
+      boxShadow: '#bbdefb -25px 20px 10px',
       border: '3px solid black',
-      margin: '40px 0',
+      margin: '35px 0',
     },
     leftPaper: {
       display: 'flex',
@@ -82,13 +91,17 @@ const useStyles = makeStyles((theme) => ({
       borderRadius: '100px 100px 5px 100px ',
       width: '10vw',
       height: '5vw',
-      boxShadow: '#bbdefb 21px 25px 5px',
+      boxShadow: '#bbdefb 25px 20px 10px',
       border: '3px solid black',
-      margin: '40px 0'
+      margin: '35px 0'
     },
     image: {
       width: '25vw', // Base width for the image
       height: 'auto', // Adjust height automatically to maintain aspect ratio
+    },
+    button: {
+      fontSize: '0.8vw',
+      maxidth: '7vw'
     },
     flag: {
       position: 'absolute',
@@ -112,16 +125,35 @@ const useStyles = makeStyles((theme) => ({
       margin: '20px',
       boxShadow: '#cfd8dc 0px 0px 10px 5px'
     },
+    about: {
+      fontSize: '3.5vw',
+    },
+    aboutText: {
+      fontSize: '1.2vw', //it's the VIEWPORT
+      padding: '1vw'
+    },
+    icons: {
+      fontSize: '13vw'
+    },
+    features: {
+      fontSize: '3.5vw',
+    },
+    featuresText: {
+      fontSize: "1.2vw",
+    },
+    featuresDescription: {
+      fontSize: "0.7vw", 
+      padding: '1vw'
+    },
     '@media (max-width: 768px)': {
       // Adjustments for mobile view
       box: {
         flexDirection: 'column',
       },
       box2: {
-        padding: '25px 50px 25px 50px',
+        padding: '2vw 10vw 2vw 10vw',
       },
       box3: {
-        padding: '2px 5px 2px 5px',
       },
       leftPaper: {
         width: '16vw',
@@ -136,9 +168,30 @@ const useStyles = makeStyles((theme) => ({
       chatText: {
         fontSize: '2vw',
       },
+      welcomeText: {
+      fontSize: '5.5vw',
+      fontWeight: 'bold',
+      fontFamily: 'Times New Roman, Times, serif'
+      },
+      introText: {
+        fontSize: '2.5vw',
+        padding: '2vw'
+      },
       image: {
         width: '50vw', 
         height: 'auto',
+      },
+      button: {
+        fontSize: '2vw',
+      },
+      about: {
+        fontSize: '5.5vw',
+      },
+      aboutText: {
+        fontSize: '2.5vw',
+      },
+      icons: {
+        fontSize: '3vw'
       },
       featuresBox: {
         flexDirection: 'column',
@@ -147,19 +200,24 @@ const useStyles = makeStyles((theme) => ({
       paperFeature: {
         width: '69vw',
         height: '69vw'
-      }
+      },
+      features: {
+        fontSize: '5.5vw',
+      },
+      featuresText: {
+        fontSize: "5vw",
+      },
+      featuresDescription: {
+        fontSize: "3vw", 
+        padding: '5vw'
+      },
     },
-    '@media (max-width: 1500px)': {
-      box2: {
-        padding: '25px 100px 25px 100px',
-      }
-    }
 }));
 
 export default function Home() {
     const classes = useStyles();
     return (
-      <div>
+      <Box className={classes.mainContainer}>
         <Box className={classes.box}>
           <img className={classes.flag} src={image2} width="100%" height="100%"/>
           <Box className ={classes.pictureBox}>
@@ -204,19 +262,18 @@ export default function Home() {
           
           <Box className={classes.textBox}>
             <Typography className={classes.welcomeText} variant="h2"> Welcome to PolyglotBot!</Typography>
-            <Typography className={classes.introText} variant="h5"> Introducing your personalized AI chatbot, a 
-              state-of-the-art conversational assistant capable of understanding and communicating in more than 30 
-              languages.
+            <Typography className={classes.introText} variant="h5"> Introducing your state-of-the-art conversational 
+              and personalized AI chatbot, capable of understanding and communicating in more than 30 languages.
             </Typography> 
-            <Button style={{padding: '10px'}} variant="outlined"> Learn More </Button>
+            <Button className={classes.button} variant="outlined"> Learn More </Button>
           </Box>
         </Box>
 
         <Box className={classes.box2}>
-          <Typography style={{textAlign:'center'}} variant="h2">
+          <Typography className={classes.about} style={{textAlign:'center'}} variant="h2">
             About
           </Typography>
-          <Typography>
+          <Typography className={classes.aboutText}>
             PolyglotBot, powered by OpenAI, is designed to offer seamless interaction, adapting to your 
             language preferences and conversation style. With a diverse linguistic capability, the chatbot
             can effortlessly switch between languages, making it ideal for multilingual individuals or 
@@ -226,16 +283,16 @@ export default function Home() {
         </Box>
 
         <Box className={classes.box3}>
-          <Typography style={{textAlign:'center'}} variant="h2">
+          <Typography className={classes.features} style={{textAlign:'center'}} variant="h2">
             Features
           </Typography>
           <Box className={classes.featuresBox}>
             <Paper className={classes.paperFeature}>
-              <MessageIcon />
-              <Typography variant="h5">
+              <MessageIcon className={classes.icons} />
+              <Typography className={classes.featuresText} variant="h5">
                 Instant Messaging
               </Typography>
-              <Typography style={{fontSize: "12px", padding: '20px'}} variant="h5">
+              <Typography className={classes.featuresDescription} variant="h5">
                 Chat instantly with the AI chatbot through text messaging. Experience seamless conversations 
                 in over 30 languages. Whether you're seeking information, guidance, or just a friendly 
                 conversation, PolyglotBot is here to assist, making every interaction effortlessly 
@@ -243,11 +300,11 @@ export default function Home() {
               </Typography>
             </Paper>
             <Paper className={classes.paperFeature}>
-              <TranslateIcon />
-              <Typography variant="h5">
+              <TranslateIcon className={classes.icons}/>
+              <Typography className={classes.featuresText} variant="h5">
                 Direct Translation
               </Typography>
-              <Typography style={{fontSize: "12px", padding: '20px'}} variant="h5">
+              <Typography className={classes.featuresDescription} variant="h5">
                 Break down language barriers with our real-time direct translation feature. Experience 
                 seamless communication across languages, ensuring accurate and natural conversations. 
                 Perfect for both personal and professional interactions, our direct translation bridges 
@@ -255,19 +312,19 @@ export default function Home() {
               </Typography>
             </Paper>
             <Paper className={classes.paperFeature}>
-              <SettingsVoiceIcon />
-              <Typography variant="h5">
+              <SettingsVoiceIcon className={classes.icons}/>
+              <Typography className={classes.featuresText} variant="h5">
                 Voice Chat
               </Typography>
-              <Typography style={{fontSize: "12px", padding: '20px'}} variant="h5">
+              <Typography className={classes.featuresDescription} variant="h5">
                 Elevate your experience with our live voice chat feature. Talk directly with the AI in a 
-                natural and conversational manner, while also enjoying real-time voice translations. This 
-                feature replicates the dynamics of a phone call, where you can speak and listen in your 
-                chosen language, making every conversation as real as talking to a native speaker. 
+                natural and conversational manner in your chosen language, while also enjoying real-time 
+                text translations. This feature replicates the dynamics of a phone call making every 
+                conversation as real as talking to a native speaker. 
               </Typography>
             </Paper>
           </Box>
         </Box>
-      </div>
+      </Box>
     );
 }

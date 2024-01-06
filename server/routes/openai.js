@@ -2,7 +2,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import fetch from 'node-fetch';
 
 dotenv.config();
 const router = express.Router();
