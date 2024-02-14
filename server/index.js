@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import openAiRoutes from "./routes/openai.js";
 import elevenlabs from "./routes/elevenlabs.js"
+import validateFirebaseIdToken from './middleware/authMiddleware.js';
 
 /* CONFIGURATIONS */
 dotenv.config();
@@ -20,7 +21,8 @@ app.use(cors());
 
 /* ROUTES */
 app.use("/openai", openAiRoutes);
-app.use("/elevenlabs", elevenlabs)
+//app.use("/elevenlabs", elevenlabs)
+app.use('/api/secure-endpoint', validateFirebaseIdToken, openAiRoutes);
 
 /* SERVER SETUP */
 const PORT = process.env.PORT || 9000;
