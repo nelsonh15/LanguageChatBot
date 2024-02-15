@@ -1,5 +1,4 @@
 import admin from 'firebase-admin';
-import express from 'express';
 
 // Initialize Firebase Admin
 admin.initializeApp({
@@ -12,11 +11,11 @@ admin.initializeApp({
 
 // Middleware to validate Firebase ID token
 const validateFirebaseIdToken = async (req, res, next) => {
+  // If there are no 'Authorization' header
   if ((!req.headers.authorization || !req.headers.authorization.startsWith('Bearer '))) {
     res.status(403).send('Unauthorized');
     return;
   }
-
   const idToken = req.headers.authorization.split('Bearer ')[1];
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -24,15 +23,8 @@ const validateFirebaseIdToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error verifying auth token', error);
-    res.status(403).send('Unauthorized');
+    res.status(403).send('Unauthorized access');
   }
 };
-
-const app = express();
-
-// Use the middleware on routes that require authentication
-app.use('/api/secure-endpoint', validateFirebaseIdToken, (req, res) => {
-  // Your secure endpoint logic here
-});
 
 export default validateFirebaseIdToken;

@@ -20,9 +20,10 @@ app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
 
 /* ROUTES */
-app.use("/openai", openAiRoutes);
+//app.use("/openai", openAiRoutes);
 //app.use("/elevenlabs", elevenlabs)
-app.use('/api/secure-endpoint', validateFirebaseIdToken, openAiRoutes);
+//app.use('/api', validateFirebaseIdToken);
+app.use('/api/openai', validateFirebaseIdToken, openAiRoutes);
 
 /* SERVER SETUP */
 const PORT = process.env.PORT || 9000;

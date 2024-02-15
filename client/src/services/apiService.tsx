@@ -18,27 +18,9 @@ export async function secureApiCall(endpoint, method, body) {
 
   // Handle response
   if (response.ok) {
-    return response.json();
+    return response;
   } else {
     // Handle error
     console.error('API call failed', response.statusText);
   }
 }
-
-export async function fetchIdToken() {
-    const auth = getAuth();
-    const user = auth.currentUser;
-  
-    if (user) {
-      try {
-        const idToken = await getIdToken(user);
-        return idToken;
-      } catch (error) {
-        console.error("Error getting ID token", error);
-        return null;
-      }
-    } else {
-      console.log("No authenticated user");
-      return null;
-    }
-  }
