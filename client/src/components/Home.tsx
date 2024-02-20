@@ -133,7 +133,7 @@ const useStyles = makeStyles((theme) => ({
       padding: '1vw'
     },
     icons: {
-      fontSize: '13vw'
+      fontSize: '13'
     },
     features: {
       fontSize: '3.5vw',
@@ -191,7 +191,7 @@ const useStyles = makeStyles((theme) => ({
         fontSize: '2.5vw',
       },
       icons: {
-        fontSize: '3vw'
+        fontSize: '3'
       },
       featuresBox: {
         flexDirection: 'column',

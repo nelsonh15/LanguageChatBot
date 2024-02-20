@@ -1,4 +1,4 @@
-import { getAuth, getIdToken } from 'firebase/auth';
+import { getAuth, getIdToken, signOut } from 'firebase/auth';
 
 export async function secureApiCall(endpoint, method, body) {
   const auth = getAuth();
@@ -19,7 +19,14 @@ export async function secureApiCall(endpoint, method, body) {
   // Handle response
   if (response.ok) {
     return response;
-  } else {
+  } 
+  else if (response.status === 403) {
+    // If token is expired or unauthorized, log out the user
+    await signOut(auth); // Ensure you import signOut from Firebase auth
+    window.dispatchEvent(new CustomEvent('session-expired'));
+    throw new Error('Session expired. Please log in again.');
+  }
+  else {
     // Handle error
     console.error('API call failed', response.statusText);
   }

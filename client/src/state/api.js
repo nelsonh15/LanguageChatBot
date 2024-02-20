@@ -1,9 +1,14 @@
 /* eslint-disable no-unused-vars */
 import { secureApiCall } from "../services/apiService.tsx";
+import SessionExpired from '../components/SessionExpired';
 
 export async function getAIText(inputText, inputLanguage) {
   try {
-    const response = await secureApiCall(`${import.meta.env.VITE_BASE_URL}/api/openai/text`, 'POST', { text: inputText, language: inputLanguage });
+    const response = await secureApiCall(
+      `${import.meta.env.VITE_BASE_URL}/api/openai/text`,
+      'POST',
+      { text: inputText, language: inputLanguage },
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -20,7 +25,11 @@ export async function getAIText(inputText, inputLanguage) {
 
 export async function translatedText(inputText, inputLanguage, translatedLang) {
   try {
-    const response = await secureApiCall(`${import.meta.env.VITE_BASE_URL}/api/openai/translated`, 'POST', { text: inputText, language: inputLanguage, translated: translatedLang });
+    const response = await secureApiCall(
+      `${import.meta.env.VITE_BASE_URL}/api/openai/translated`,
+      'POST',
+      { text: inputText, language: inputLanguage, translated: translatedLang },
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -36,7 +45,11 @@ export async function translatedText(inputText, inputLanguage, translatedLang) {
 
 export async function chatCompletion(messages, inputLanguage) {
   try {
-    const response = await secureApiCall(`${import.meta.env.VITE_BASE_URL}/api/openai/chat-completion`, 'POST', { messages: messages, language: inputLanguage });
+    const response = await secureApiCall(
+      `${import.meta.env.VITE_BASE_URL}/api/openai/chat-completion`,
+      'POST',
+      { messages: messages, language: inputLanguage },
+    );
 
     if (response.ok) {
       const data = await response.json();
@@ -52,7 +65,11 @@ export async function chatCompletion(messages, inputLanguage) {
 
 export async function handleTextToSpeech(text, setAudioUrl) {
   try {
-    const response = await secureApiCall(`${import.meta.env.VITE_BASE_URL}/api/openai/text-to-speech`, 'POST', { text: text });
+    const response = await secureApiCall(
+      `${import.meta.env.VITE_BASE_URL}/api/openai/text-to-speech`,
+      'POST',
+      { text: text },
+    );
 
     if (response.ok) {
       const audioBlob = await response.blob();
