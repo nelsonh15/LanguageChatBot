@@ -6,7 +6,6 @@ export async function secureApiCall(endpoint, method, body) {
   if (!user) throw new Error('User not authenticated');
 
   const idToken = await getIdToken(user);
-
   const response = await fetch(endpoint, {
     method: method,
     headers: {

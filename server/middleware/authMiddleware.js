@@ -1,6 +1,5 @@
 import admin from 'firebase-admin';
 
-
 // Initialize Firebase Admin
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -22,8 +21,8 @@ const validateFirebaseIdToken = async (req, res, next) => {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
 
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    const maxAllowedSessionTimeInSeconds = 3600; //Set to one hour
-
+    const maxAllowedSessionTimeInSeconds = 3540; //Set to one hour
+    console.log(currentTimeInSeconds - decodedToken.iat)
     if ((currentTimeInSeconds - decodedToken.iat) > maxAllowedSessionTimeInSeconds) {
       console.log("Token expired!")
       res.status(403).send('Token expired');

@@ -64,22 +64,43 @@ export async function chatCompletion(messages, inputLanguage) {
 }
 
 export async function handleTextToSpeech(text, setAudioUrl) {
-  try {
-    const response = await secureApiCall(
-      `${import.meta.env.VITE_BASE_URL}/api/openai/text-to-speech`,
-      'POST',
-      { text: text },
-    );
+  if (localStorage.getItem(text) != null) {
+    const base64Audio = localStorage.getItem(text);
+    const byteCharacters = atob(base64Audio);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    setAudioUrl(audioUrl);
+  }
+  else {
+    try {
+      const response = await secureApiCall(
+        `${import.meta.env.VITE_BASE_URL}/api/openai/text-to-speech`,
+        'POST',
+        { text: text },
+      );
 
-    if (response.ok) {
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioUrl(audioUrl);
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = function () {
+          const base64Audio = reader.result.split(',')[1];
+          localStorage.setItem(text, base64Audio);
+          const audioUrl = URL.createObjectURL(audioBlob);
+          setAudioUrl(audioUrl);
+        }
+      }
+      else {
+        throw new Error('Network response was not ok');
+      }
+    } catch (error) {
+      console.error('Error in text to speech conversion', error);
     }
-    else {
-      throw new Error('Network response was not ok');
-    }
-  } catch (error) {
-    console.error('Error in text to speech conversion', error);
   }
 }
+

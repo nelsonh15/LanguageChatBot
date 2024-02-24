@@ -6,6 +6,7 @@ import Message from "./Message";
 import { onAuthStateChangedHelper, getUserChatsandMessages, getMessages, getChosenChatLanguages, addChat, deleteChat, addMessages } from "../firebase";
 import ChatStarter from "./ChatStarter";
 import LanguageDialog from "./LanguageDialog";
+import Settings from "./Settings";
 import { getAIText, translatedText, handleTextToSpeech, chatCompletion } from "../state/api";
 
 const LoggedInHome = ({ handleSubmit }) => {
@@ -17,11 +18,13 @@ const LoggedInHome = ({ handleSubmit }) => {
   const [chats, setChats] = useState({});
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
+  const [autoPlay, setAutoPlay] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chatLanguage, setChatLanguage] = useState(null);
   const [chatTranslatedLang, setChatTranslatedLang] = useState(null);
   const [messages, setMessages] = useState([{content: "", role: 'system'}]);
-  
+  const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState(null);
+
   useEffect(() => {
     // Set up an observer for authentication state changes
     const unsubscribe = onAuthStateChangedHelper((user) => {
@@ -84,7 +87,7 @@ const LoggedInHome = ({ handleSubmit }) => {
         console.error("Error playing the audio", error);
       });
     }
-  }, [audioUrl]);
+  }, [audioUrl, autoPlay]);
 
   const deleteChatHandler = async (chatId: number) => {
     const deleted = await deleteChat(user, chatId);
@@ -147,7 +150,10 @@ const LoggedInHome = ({ handleSubmit }) => {
       }
       messages.push(message2)
 
-      handleTextToSpeech(aiText, setAudioUrl);
+      if (autoPlay) {
+        handleTextToSpeech(aiText, setAudioUrl);
+      }
+      
 
       setLoading(false);
     }
@@ -214,7 +220,7 @@ const LoggedInHome = ({ handleSubmit }) => {
       {currentChatId !== null ? (
         <Box sx={{
           height: "91vh",
-          width: "84%",
+          width: "69%",
           display: "flex",
           flexDirection: "column",
           bgcolor: "grey.300",
@@ -224,7 +230,18 @@ const LoggedInHome = ({ handleSubmit }) => {
             {/* Render messages based on the current chat */}
             {currentChatId !== null && chats[currentChatId] &&(
               chats[currentChatId].messages.map((message) => (
-                <Message key={message.id} message={message} />
+                <Message
+                  key={message.id}
+                  message={message}
+                  canPlay={currentlyPlayingMessageId === null || currentlyPlayingMessageId === message.id}
+                  onPlayStateChange={(messageId, isPlaying) => {
+                    if (isPlaying) {
+                      setCurrentlyPlayingMessageId(messageId);
+                    } else if (currentlyPlayingMessageId === messageId) {
+                      setCurrentlyPlayingMessageId(null);
+                    }
+                  }}
+                />
               ))
             )}
             <div ref={chatBoxRef} />
@@ -256,7 +273,7 @@ const LoggedInHome = ({ handleSubmit }) => {
         </Box>
         )
       }
-
+    <Settings autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
     </div>
   );
 };
