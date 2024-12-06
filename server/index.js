@@ -4,9 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
-import openAiRoutes from "./routes/openai.js";
-import elevenlabs from "./routes/elevenlabs.js"
-import validateFirebaseIdToken from './middleware/authMiddleware.js';
+import openAiRoutes from "./src/routes/openai.js";
+import elevenlabs from "./src/routes/elevenlabs.js"
+import validateFirebaseIdToken from './src/middleware/authMiddleware.js';
 
 /* CONFIGURATIONS */
 dotenv.config();
