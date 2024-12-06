@@ -8,6 +8,7 @@ import ChatStarter from "./ChatStarter";
 import LanguageDialog from "./LanguageDialog";
 import Settings from "./Settings";
 import { getAIText, translatedText, handleTextToSpeech, chatCompletion } from "../state/api";
+import SpeechToText from "./SpeechToText";
 
 const LoggedInHome = ({ handleSubmit }) => {
   const [input, setInput] = useState("");
@@ -202,6 +203,10 @@ const LoggedInHome = ({ handleSubmit }) => {
     setCurrentChatId(chatId);
   };
 
+  const handleTranscriptChange = (newTranscript: string) => {
+    setInput(newTranscript.trim());
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "row", margin: 1, padding: 0 }}>
       <Box sx={{
@@ -248,11 +253,15 @@ const LoggedInHome = ({ handleSubmit }) => {
           </Box>
 
           <Box sx={{ p: 2, backgroundColor: "background.default", borderTop: '2px solid #4682B4' }}>
-            <Grid container spacing={2}>
+            <Grid container alignItems="center" spacing={1}>
               <Grid item xs={10}>
                 <TextField size="small" fullWidth placeholder="Type a message" variant="outlined" value={input} onChange={handleInputChange} onKeyDown={keyPress} />
               </Grid>
-              <Grid item xs={2}>
+              
+              <Grid item xs="auto">
+                <SpeechToText onTranscriptChange={handleTranscriptChange} />
+              </Grid>
+              <Grid item xs>
                 <Button ref={sendButtonref} fullWidth color="primary" variant="contained" endIcon={<SendIcon />} onClick={handleSend} disabled={loading}>
                   Send
                 </Button>
