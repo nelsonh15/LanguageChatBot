@@ -23,7 +23,7 @@ const LoggedInHome = ({ handleSubmit }) => {
   const [loading, setLoading] = useState(false);
   const [chatLanguage, setChatLanguage] = useState(null);
   const [chatTranslatedLang, setChatTranslatedLang] = useState(null);
-  const [messages, setMessages] = useState([{content: "", role: 'system'}]);
+  const [messages, setMessages] = useState([{ content: "", role: 'system' }]);
   const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState(null);
 
   useEffect(() => {
@@ -37,12 +37,13 @@ const LoggedInHome = ({ handleSubmit }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-    // Fetch user data when the user state changes
+      // Fetch user data when the user state changes
       if (user) {
         const userChats = await getUserChatsandMessages(user);
         // Handle the userChats data as needed
         if (userChats) {
           setChats(userChats);
+          console.log("triggered main")
         }
       }
     };
@@ -52,25 +53,28 @@ const LoggedInHome = ({ handleSubmit }) => {
   useEffect(() => {
     async function loadMessages() {
       if (user && currentChatId) {
-        const fetchedMessages = await getMessages(user, currentChatId);
-        setMessages(fetchedMessages);
+        //const fetchedMessages = await getMessages(user, currentChatId);
+        setMessages(chats[currentChatId].messages);
+        setChatLanguage(chats[currentChatId].language)
+        setChatTranslatedLang(chats[currentChatId].translatedLanguage)
+        console.log("triggered load")
       }
     };
     loadMessages();
   }, [user, currentChatId]);
 
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      if (user && currentChatId) {
-        const languages = await getChosenChatLanguages(user, currentChatId);
-        if (languages) {
-          setChatLanguage(languages[0]);
-          setChatTranslatedLang(languages[1]);
-        }
-      }
-    };
-    fetchLanguages();
-  }, [user, currentChatId]);
+  // useEffect(() => {
+  //   const fetchLanguages = async () => {
+  //     if (user && currentChatId) {
+  //       const languages = await getChosenChatLanguages(user, currentChatId);
+  //       if (languages) {
+  //         setChatLanguage(languages[0]);
+  //         setChatTranslatedLang(languages[1]);
+  //       }
+  //     }
+  //   };
+  //   fetchLanguages();
+  // }, [user, currentChatId]);
 
   useEffect(() => {
     if (currentChatId !== null && chats[currentChatId].messages.length) {
@@ -96,37 +100,41 @@ const LoggedInHome = ({ handleSubmit }) => {
       const updatedChats = { ...chats };
       delete updatedChats[chatId];
       setChats(updatedChats);
-  
+
       // Update currentChatId if the deleted chat was the current chat
       if (currentChatId === chatId) {
         const remainingChatIds = Object.keys(updatedChats);
         setCurrentChatId(remainingChatIds.length > 0 ? remainingChatIds[0] : null);
       }
     } else {
-        console.error("Error deleting chat.");
+      console.error("Error deleting chat.");
     }
   };
 
   const handleSend = async () => {
     if (input.trim() !== "") {
       const translatedUserText = await translatedText(input, chatLanguage, chatTranslatedLang)
-      addMessages(user, currentChatId, chats[currentChatId].messages.length+1, "user", input, translatedUserText)
-      const newMessage = { 
-        id: chats[currentChatId].messages.length + 1, 
-        content: input, 
-        role: "user", 
-        translated: translatedUserText
+      const userTimestamp = await addMessages(user, currentChatId, chats[currentChatId].messages.length + 1, "user", input, translatedUserText)
+      const newMessage = {
+        chatID: currentChatId,
+        id: chats[currentChatId].messages.length + 1,
+        content: input,
+        role: "user",
+        translated: translatedUserText,
+        addedAt: userTimestamp.addedAt,
+        createdBy: userTimestamp.createdBy,
+        createdBy_userID: userTimestamp.createdBy_userID
       };
 
       const updatedChats = { ...chats };
       updatedChats[currentChatId].messages.push(newMessage);
       setChats(updatedChats);
 
-      const message = {
-        content: input,
-        role: "user"
-      }
-      messages.push(message)
+      // const message = {
+      //   content: input,
+      //   role: "user"
+      // }
+      // messages.push(message)
 
       setInput("");
       setLoading(true);
@@ -134,27 +142,31 @@ const LoggedInHome = ({ handleSubmit }) => {
       //const aiText = await getAIText(input, chatLanguage);
       const aiText = await chatCompletion(messages, chatLanguage)
       const translatedAIText = await translatedText(aiText, chatLanguage, chatTranslatedLang)
-      addMessages(user, currentChatId, chats[currentChatId].messages.length+1, "assistant", aiText, translatedAIText)
-      const newAIMessage = { 
-        id: chats[currentChatId].messages.length + 1, 
-        content: aiText, 
-        role: "assistant", 
-        translated: translatedAIText
+      const aiTimestamp = await addMessages(user, currentChatId, chats[currentChatId].messages.length + 1, "assistant", aiText, translatedAIText)
+      const newAIMessage = {
+        chatID: currentChatId,
+        id: chats[currentChatId].messages.length + 1,
+        content: aiText,
+        role: "assistant",
+        translated: translatedAIText,
+        addedAt: aiTimestamp.addedAt,
+        createdBy: aiTimestamp.createdBy,
+        createdBy_userID: aiTimestamp.createdBy_userID
       };
       const updatedChats2 = { ...chats };
       updatedChats2[currentChatId].messages.push(newAIMessage);
       setChats(updatedChats2);
 
-      const message2 = {
-        content: aiText, 
-        role: "assistant"
-      }
-      messages.push(message2)
+      // const message2 = {
+      //   content: aiText,
+      //   role: "assistant"
+      // }
+      // messages.push(message2)
 
       if (autoPlay) {
         handleTextToSpeech(aiText, setAudioUrl);
       }
-      
+
 
       setLoading(false);
     }
@@ -162,17 +174,14 @@ const LoggedInHome = ({ handleSubmit }) => {
 
   const handleLanguageDialogSubmit = async (chatName, language, translatedLang) => {
     if (user) {
-      const newChatId = await addChat(user, chatName, language, translatedLang);
-  
-      if (newChatId !== null) {
-        const newChat = {
-          id: newChatId,
-          chat: chatName,
-          messages: [],
-        };
+      const newChatAndID = await addChat(user, chatName, language, translatedLang);
+
+      if (newChatAndID !== null) {
+        const newChatId = newChatAndID[0];
+        const newChat = newChatAndID[1];
         // Add the new chat to the list of chats
-        setChats({...chats, [newChatId]: newChat });
-  
+        setChats({ ...chats, [String(newChatId)]: newChat });
+
         // Set the new chat as the current chat
         setCurrentChatId(newChatId);
       }
@@ -217,9 +226,9 @@ const LoggedInHome = ({ handleSubmit }) => {
         bgcolor: "grey.300",
         border: '2px solid #4682B4',
         overflow: 'auto'
-        }}>
-          <LanguageDialog open={showLanguageDialog} onClose={() => setShowLanguageDialog(false)} onSubmit={handleLanguageDialogSubmit} />
-          <Chats chats={chats} deleteChatHandler={deleteChatHandler} switchChat={switchChat} handleNewChatClick={handleNewChatClick} currentChatId={currentChatId}/>
+      }}>
+        <LanguageDialog open={showLanguageDialog} onClose={() => setShowLanguageDialog(false)} onSubmit={handleLanguageDialogSubmit} />
+        <Chats chats={chats} deleteChatHandler={deleteChatHandler} switchChat={switchChat} handleNewChatClick={handleNewChatClick} currentChatId={currentChatId} />
       </Box>
 
       {currentChatId !== null ? (
@@ -230,10 +239,10 @@ const LoggedInHome = ({ handleSubmit }) => {
           flexDirection: "column",
           bgcolor: "grey.300",
           border: '2px solid #4682B4'
-          }}>
+        }}>
           <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
             {/* Render messages based on the current chat */}
-            {currentChatId !== null && chats[currentChatId] &&(
+            {currentChatId !== null && chats[currentChatId] && (
               chats[currentChatId].messages.map((message) => (
                 <Message
                   key={message.id}
@@ -257,7 +266,7 @@ const LoggedInHome = ({ handleSubmit }) => {
               <Grid item xs={10}>
                 <TextField size="small" fullWidth placeholder="Type a message" variant="outlined" value={input} onChange={handleInputChange} onKeyDown={keyPress} />
               </Grid>
-              
+
               <Grid item xs="auto">
                 <SpeechToText onTranscriptChange={handleTranscriptChange} />
               </Grid>
@@ -269,7 +278,7 @@ const LoggedInHome = ({ handleSubmit }) => {
             </Grid>
           </Box>
         </Box>
-        ) : (
+      ) : (
         <Box sx={{
           height: "91vh",
           width: "84%",
@@ -277,12 +286,12 @@ const LoggedInHome = ({ handleSubmit }) => {
           flexDirection: "column",
           bgcolor: "grey.300",
           border: '2px solid #4682B4'
-          }}>
-            <ChatStarter />
+        }}>
+          <ChatStarter />
         </Box>
-        )
+      )
       }
-    <Settings autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
+      <Settings autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
     </div>
   );
 };

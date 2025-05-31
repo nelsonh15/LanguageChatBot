@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import {getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User} from 'firebase/auth';
-import { getFirestore, addDoc, doc, setDoc, collection, getDocs, deleteDoc, serverTimestamp, orderBy, query, getDoc } from 'firebase/firestore';
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore, addDoc, doc, setDoc, collection, getDocs, deleteDoc, serverTimestamp, orderBy, query, getDoc, where } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -26,7 +26,7 @@ export function signOut() {
 }
 
 export function onAuthStateChangedHelper(callback: (user: User | null) => void) {
-  
+
   return onAuthStateChanged(auth, async (user) => {
     callback(user);
     if (user) {
@@ -47,13 +47,29 @@ export function onAuthStateChangedHelper(callback: (user: User | null) => void) 
 
 export async function getUserChatsandMessages(user) {
   try {
-    const chatsRef = collection(db, `users/${user.uid}/chats`);
-    const chatSnapshot = await getDocs(query(chatsRef, orderBy('createdAt', 'asc')));
-    
+    const chatsRef = collection(db, 'chats');
+    // Filter at database level for chats created by this user
+    const chatSnapshot = await getDocs(
+      query(
+        chatsRef,
+        where('createdBy_userID', '==', user.uid),
+        orderBy('createdAt', 'asc')
+      )
+    );
+
     const chats = {};
     await Promise.all(chatSnapshot.docs.map(async (chatDoc) => {
-      const messagesRef = collection(db, `users/${user.uid}/chats/${chatDoc.id}/messages`);
-      const messageSnapshot = await getDocs(query(messagesRef, orderBy('addedAt', 'asc')));
+      const chatData = chatDoc.data();
+      const messagesRef = collection(db, 'messages');
+      // Example of multiple where conditions for messages
+      const messageSnapshot = await getDocs(
+        query(
+          messagesRef,
+          where('chatID', '==', chatData.chatID),
+          where('createdBy_userID', '==', user.uid),
+          orderBy('addedAt', 'asc')
+        )
+      );
 
       const messages = []
       messageSnapshot.docs.forEach((messageDoc) => {
@@ -62,7 +78,9 @@ export async function getUserChatsandMessages(user) {
 
       chats[chatDoc.id] = {
         id: chatDoc.id,
-        chat: chatDoc.data().ChatName, // Assuming you want to name the chat like this
+        chat: chatData.ChatName,
+        language: chatData.Language,
+        translatedLanguage: chatData.TranslatedLanguage,
         messages: messages
       };
     }));
@@ -75,82 +93,41 @@ export async function getUserChatsandMessages(user) {
   }
 }
 
-export async function getMessages(user, chatId) {
-  try {
-    const messagesRef = collection(db, `users/${user.uid}/chats/${chatId}/messages`);
-    const messagesSnapshot = await getDocs(query(messagesRef, orderBy('addedAt', 'asc')));
-    const messages = [];
-    messagesSnapshot.docs.forEach((messageDoc) => {
-      messages.push({ role: messageDoc.data().role, content: messageDoc.data().content })
-    })
-    return messages;
-  }
-  catch(error) {
-    console.log(error.message);
-    return null;
-  }
-}
-
-export async function getChosenChatLanguages(user, chatId) {
-  try {
-    const chatsRef = doc(db, `users/${user.uid}/chats/`, chatId)
-    const docSnap = await getDoc(chatsRef)
-    const data = [];
-    data.push(docSnap.data().Language)
-    data.push(docSnap.data().TranslatedLanguage)
-    return data;
-  }
-  
-  catch (error) {
-    console.log(error.message);
-    return null;
-  }
-}
-
 export async function addChat(user, chatName, language, translatedLang) {
   try {
-    const userChatsRef = collection(db, `users/${user.uid}/chats`);
+    const userChatsRef = collection(db, `chats`);
     const chatSnapshot = await addDoc(userChatsRef, {});
 
     // Determine the next chat ID
     const nextChatId = chatSnapshot.id;
 
     // Create a reference for the new chat document
-    const newChatRef = doc(db, `users/${user.uid}/chats/${nextChatId}`);
+    const newChatRef = doc(db, `chats/${nextChatId}`);
 
     // Set the new chat document with an empty messages collection
-    await setDoc(newChatRef, { createdAt: serverTimestamp(), ChatName: chatName, Language: language, TranslatedLanguage: translatedLang});
-    
-    const messagesRef = collection(db, `users/${user.uid}/chats/${nextChatId}/messages`);
-    
-    return nextChatId; // Returning the ID of the new chat
-  } 
+    const newChat = {
+      chatID: nextChatId,
+      ChatName: chatName,
+      Language: language,
+      TranslatedLanguage: translatedLang,
+      createdAt: serverTimestamp(),
+      createdBy: user.email,
+      createdBy_userID: user.uid
+    }
+    await setDoc(newChatRef, newChat);
 
-  catch(error) {
-    console.log(error.message);
-    return null;
-  }
-}
+    const newChatObject = {
+      id: nextChatId,
+      chat: chatName,
+      language: language,
+      translatedLanguage: translatedLang,
+      messages: []
+    }
 
-export async function deleteChat(user, chatId) {
-  try {
-     // Delete messages inside the chat
-     const messagesRef = collection(db, `users/${user.uid}/chats/${chatId}/messages`);
-     const messagesSnapshot = await getDocs(messagesRef);
- 
-     // Delete each message document individually
-     for (const messageDoc of messagesSnapshot.docs) {
-       await deleteDoc(messageDoc.ref);
-     }
- 
-     // Delete the chat document
-     const chatRef = doc(db, `users/${user.uid}/chats/${chatId}`);
-     await deleteDoc(chatRef);
- 
-     return true;
+    return [nextChatId, newChatObject];
   }
 
-  catch(error) {
+  catch (error) {
     console.log(error.message);
     return null;
   }
@@ -158,20 +135,74 @@ export async function deleteChat(user, chatId) {
 
 export async function addMessages(user, chatId, id, sender, text, translated) {
   try {
-    const messageRef = collection(db, `users/${user.uid}/chats/${chatId}/messages`)
+    const messageRef = collection(db, 'messages')
     const messageDocRef = await addDoc(messageRef, {
       id: id,
       role: sender,
       content: text,
       translated: translated,
-      addedAt: serverTimestamp()
+      addedAt: serverTimestamp(),
+      chatID: chatId,
+      createdBy: user.email,
+      createdBy_userID: user.uid
     });
+
+    return {
+      addedAt: serverTimestamp(),
+      createdBy: user.email,
+      createdBy_userID: user.uid,
+    }
   }
 
-  catch(error) {
+  catch (error) {
     console.log(error.messages);
     return null;
   }
 }
+
+export async function deleteChat(user, chatId) {
+  try {
+    // Reference the specific chat document using chatId
+    const chatRef = doc(db, 'chats', chatId);
+    const chatDoc = await getDoc(chatRef);
+
+    if (!chatDoc.exists()) {
+      console.log("Chat not found");
+      return false;
+    }
+
+    const chatData = chatDoc.data();
+    if (chatData.createdBy_userID !== user.uid) {
+      console.log("User does not have permission to delete this chat");
+      return false;
+    }
+
+    // First, delete all messages associated with this chat
+    const messagesRef = collection(db, 'messages');
+    const messageSnapshot = await getDocs(
+      query(
+        messagesRef,
+        where('chatID', '==', chatId)
+      )
+    );
+
+    // Delete all messages in a batch
+    const deletionPromises = messageSnapshot.docs.map(messageDoc =>
+      deleteDoc(doc(db, 'messages', messageDoc.id))
+    );
+    await Promise.all(deletionPromises);
+
+    // Then delete the chat document
+    await deleteDoc(chatRef);
+
+    return true;
+  }
+
+  catch (error) {
+    console.log(error.message);
+    return null;
+  }
+}
+
 
 export { db };
