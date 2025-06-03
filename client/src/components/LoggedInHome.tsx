@@ -1,22 +1,29 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, TextField, Button, Grid } from "@mui/material";
+import { Box, TextField, Button, Grid, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import SettingsIcon from "@mui/icons-material/Settings";
 import Chats from "./Chats";
 import Message from "./Message";
-import { onAuthStateChangedHelper, getUserChatsandMessages, getMessages, getChosenChatLanguages, addChat, deleteChat, addMessages } from "../firebase";
+import { onAuthStateChangedHelper, getUserChatsandMessages, addChat, deleteChat, addMessages, updateChatName } from "../firebase";
 import ChatStarter from "./ChatStarter";
 import LanguageDialog from "./LanguageDialog";
 import Settings from "./Settings";
-import { getAIText, translatedText, handleTextToSpeech, chatCompletion } from "../state/api";
+import { translatedText, handleTextToSpeech, chatCompletion } from "../state/api";
 import SpeechToText from "./SpeechToText";
+import { User } from 'firebase/auth';
 
-const LoggedInHome = ({ handleSubmit }) => {
+interface LoggedInHomeProps {
+  handleSubmit: () => void;
+  user: User;
+  chats: Record<string, any>;
+  setChats: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+}
+
+const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps) => {
   const [input, setInput] = useState("");
   const chatBoxRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
   const sendButtonref = useRef<HTMLButtonElement | null>(null);
-  const [user, setUser] = useState(null); // Add user state
-  const [chats, setChats] = useState({});
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
   const [autoPlay, setAutoPlay] = useState(false);
@@ -25,59 +32,21 @@ const LoggedInHome = ({ handleSubmit }) => {
   const [chatTranslatedLang, setChatTranslatedLang] = useState(null);
   const [messages, setMessages] = useState([{ content: "", role: 'system' }]);
   const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState(null);
-
-  useEffect(() => {
-    // Set up an observer for authentication state changes
-    const unsubscribe = onAuthStateChangedHelper((user) => {
-      setUser(user);
-    });
-    // Clean up the observer when the component unmounts
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      // Fetch user data when the user state changes
-      if (user) {
-        const userChats = await getUserChatsandMessages(user);
-        // Handle the userChats data as needed
-        if (userChats) {
-          setChats(userChats);
-          console.log("triggered main")
-        }
-      }
-    };
-    fetchData();
-  }, [user]);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
 
   useEffect(() => {
     async function loadMessages() {
       if (user && currentChatId) {
-        //const fetchedMessages = await getMessages(user, currentChatId);
         setMessages(chats[currentChatId].messages);
         setChatLanguage(chats[currentChatId].language)
         setChatTranslatedLang(chats[currentChatId].translatedLanguage)
-        console.log("triggered load")
       }
     };
     loadMessages();
-  }, [user, currentChatId]);
-
-  // useEffect(() => {
-  //   const fetchLanguages = async () => {
-  //     if (user && currentChatId) {
-  //       const languages = await getChosenChatLanguages(user, currentChatId);
-  //       if (languages) {
-  //         setChatLanguage(languages[0]);
-  //         setChatTranslatedLang(languages[1]);
-  //       }
-  //     }
-  //   };
-  //   fetchLanguages();
-  // }, [user, currentChatId]);
+  }, [user, currentChatId, chats]);
 
   useEffect(() => {
-    if (currentChatId !== null && chats[currentChatId].messages.length) {
+    if (currentChatId !== null && chats[currentChatId]?.messages.length) {
       chatBoxRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [currentChatId, chats]);
@@ -94,7 +63,11 @@ const LoggedInHome = ({ handleSubmit }) => {
     }
   }, [audioUrl, autoPlay]);
 
-  const deleteChatHandler = async (chatId: number) => {
+  const editChatHandler = async (chatId: number) => {
+
+  }
+
+  const deleteChatHandler = async (chatId: string) => {
     const deleted = await deleteChat(user, chatId);
     if (deleted) {
       const updatedChats = { ...chats };
@@ -130,16 +103,9 @@ const LoggedInHome = ({ handleSubmit }) => {
       updatedChats[currentChatId].messages.push(newMessage);
       setChats(updatedChats);
 
-      // const message = {
-      //   content: input,
-      //   role: "user"
-      // }
-      // messages.push(message)
-
       setInput("");
       setLoading(true);
 
-      //const aiText = await getAIText(input, chatLanguage);
       const aiText = await chatCompletion(messages, chatLanguage)
       const translatedAIText = await translatedText(aiText, chatLanguage, chatTranslatedLang)
       const aiTimestamp = await addMessages(user, currentChatId, chats[currentChatId].messages.length + 1, "assistant", aiText, translatedAIText)
@@ -157,17 +123,9 @@ const LoggedInHome = ({ handleSubmit }) => {
       updatedChats2[currentChatId].messages.push(newAIMessage);
       setChats(updatedChats2);
 
-      // const message2 = {
-      //   content: aiText,
-      //   role: "assistant"
-      // }
-      // messages.push(message2)
-
       if (autoPlay) {
         handleTextToSpeech(aiText, setAudioUrl);
       }
-
-
       setLoading(false);
     }
   };
@@ -216,11 +174,23 @@ const LoggedInHome = ({ handleSubmit }) => {
     setInput(newTranscript.trim());
   };
 
+  const handleRenameChat = async (chatId: string, newName: string) => {
+    const success = await updateChatName(user, chatId, newName);
+    if (success) {
+      const updatedChats = { ...chats };
+      updatedChats[chatId] = {
+        ...updatedChats[chatId],
+        chat: newName
+      };
+      setChats(updatedChats);
+    }
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "row", margin: 1, padding: 0 }}>
+    <div style={{ display: "flex", flexDirection: "row", margin: 0, padding: 0, height: "100vh", width: "100%" }}>
       <Box sx={{
-        height: "91vh",
-        width: "16%",
+        height: "100vh",
+        width: "18vw",
         display: "flex",
         flexDirection: "column",
         bgcolor: "grey.300",
@@ -228,13 +198,20 @@ const LoggedInHome = ({ handleSubmit }) => {
         overflow: 'auto'
       }}>
         <LanguageDialog open={showLanguageDialog} onClose={() => setShowLanguageDialog(false)} onSubmit={handleLanguageDialogSubmit} />
-        <Chats chats={chats} deleteChatHandler={deleteChatHandler} switchChat={switchChat} handleNewChatClick={handleNewChatClick} currentChatId={currentChatId} />
+        <Chats
+          chats={chats}
+          deleteChatHandler={deleteChatHandler}
+          switchChat={switchChat}
+          handleNewChatClick={handleNewChatClick}
+          currentChatId={currentChatId}
+          onRenameChat={handleRenameChat}
+        />
       </Box>
 
       {currentChatId !== null ? (
         <Box sx={{
-          height: "91vh",
-          width: "69%",
+          height: "100vh",
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           bgcolor: "grey.300",
@@ -280,8 +257,8 @@ const LoggedInHome = ({ handleSubmit }) => {
         </Box>
       ) : (
         <Box sx={{
-          height: "91vh",
-          width: "84%",
+          height: "100vh",
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           bgcolor: "grey.300",
@@ -289,9 +266,13 @@ const LoggedInHome = ({ handleSubmit }) => {
         }}>
           <ChatStarter />
         </Box>
-      )
-      }
-      <Settings autoPlay={autoPlay} setAutoPlay={setAutoPlay} />
+      )}
+      <Settings
+        autoPlay={autoPlay}
+        setAutoPlay={setAutoPlay}
+        isExpanded={settingsExpanded}
+        onToggle={() => setSettingsExpanded(!settingsExpanded)}
+      />
     </div>
   );
 };

@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 const db = getFirestore(app);
 
 export function signInWithGoogle() {
@@ -204,5 +204,28 @@ export async function deleteChat(user, chatId) {
   }
 }
 
+export async function updateChatName(user: User, chatId: string, newName: string) {
+  try {
+    const chatRef = doc(db, 'chats', chatId);
+    const chatDoc = await getDoc(chatRef);
+
+    if (!chatDoc.exists()) {
+      console.log("Chat not found");
+      return false;
+    }
+
+    const chatData = chatDoc.data();
+    if (chatData.createdBy_userID !== user.uid) {
+      console.log("User does not have permission to update this chat");
+      return false;
+    }
+
+    await setDoc(chatRef, { ...chatData, ChatName: newName }, { merge: true });
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+}
 
 export { db };

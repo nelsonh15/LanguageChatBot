@@ -3,7 +3,7 @@
 import { Fragment } from 'react';
 import { signInWithGoogle, signOut } from '../firebase';
 import { User } from 'firebase/auth';
-import {Box, Button} from "@mui/material";
+import { Box, Button } from "@mui/material";
 import React from 'react';
 import styles from './styles/sign-in.module.css';
 import { useNavigate } from 'react-router-dom';
@@ -26,16 +26,16 @@ export default function SignIn({ user }: SignInProps) {
     }
   }
   return (
-      <Fragment>
-        {user ? (
-          <Button className={styles.signin} variant="contained" onClick={signOut} >
-            Logout
-          </Button>
-          ) : (
-          <Button className={styles.signin} onClick={handleSignIn} variant="contained">
-            Login
-          </Button>
-        )}
-      </Fragment>
+    <Fragment>
+      {user ? (
+        <Button className={styles.signin} variant="contained" onClick={signOut} >
+          Logout
+        </Button>
+      ) : (
+        <Button className={styles.signin} onClick={handleSignIn} variant="contained">
+          Login
+        </Button>
+      )}
+    </Fragment>
   );
 }
