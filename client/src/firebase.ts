@@ -135,20 +135,25 @@ export async function addChat(user, chatName, language, translatedLang) {
 
 export async function addMessages(user, chatId, id, sender, text, translated) {
   try {
+    const timestamp = serverTimestamp();
     const messageRef = collection(db, 'messages')
     const messageDocRef = await addDoc(messageRef, {
       id: id,
       role: sender,
       content: text,
       translated: translated,
-      addedAt: serverTimestamp(),
+      addedAt: timestamp,
       chatID: chatId,
       createdBy: user.email,
       createdBy_userID: user.uid
     });
 
+    // Return current date for immediate display
     return {
-      addedAt: serverTimestamp(),
+      addedAt: {
+        seconds: Math.floor(Date.now() / 1000),
+        nanoseconds: 0
+      },
       createdBy: user.email,
       createdBy_userID: user.uid,
     }

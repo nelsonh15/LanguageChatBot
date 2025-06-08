@@ -4,7 +4,7 @@ import SendIcon from "@mui/icons-material/Send";
 import SettingsIcon from "@mui/icons-material/Settings";
 import Chats from "./Chats";
 import Message from "./Message";
-import { onAuthStateChangedHelper, getUserChatsandMessages, addChat, deleteChat, addMessages, updateChatName } from "../firebase";
+import { addChat, deleteChat, addMessages, updateChatName } from "../firebase";
 import ChatStarter from "./ChatStarter";
 import LanguageDialog from "./LanguageDialog";
 import Settings from "./Settings";
@@ -62,10 +62,6 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
       });
     }
   }, [audioUrl, autoPlay]);
-
-  const editChatHandler = async (chatId: number) => {
-
-  }
 
   const deleteChatHandler = async (chatId: string) => {
     const deleted = await deleteChat(user, chatId);
@@ -220,7 +216,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
           <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
             {/* Render messages based on the current chat */}
             {currentChatId !== null && chats[currentChatId] && (
-              chats[currentChatId].messages.map((message) => (
+              chats[currentChatId].messages.map((message, index) => (
                 <Message
                   key={message.id}
                   message={message}
@@ -232,6 +228,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
                       setCurrentlyPlayingMessageId(null);
                     }
                   }}
+                  previousMessageDate={index > 0 ? chats[currentChatId].messages[index - 1].addedAt : null}
                 />
               ))
             )}
