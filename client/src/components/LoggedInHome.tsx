@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Box, TextField, Button, Grid, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -27,12 +27,65 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
   const [autoPlay, setAutoPlay] = useState(false);
+  const [showTranslationTooltip, setShowTranslationTooltip] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chatLanguage, setChatLanguage] = useState(null);
   const [chatTranslatedLang, setChatTranslatedLang] = useState(null);
   const [messages, setMessages] = useState([{ content: "", role: 'system' }]);
   const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+
+  // New settings state
+  const [fontSize, setFontSize] = useState(16);
+  const [fontFamily, setFontFamily] = useState('Arial');
+  const [bubbleStyle, setBubbleStyle] = useState<'rounded' | 'square' | 'classic'>('rounded');
+  const [textColorUser, setTextColorUser] = useState('#000000');
+  const [textColorBot, setTextColorBot] = useState('#000000');
+  const [bubbleColorUser, setBubbleColorUser] = useState('#E3F2FD');
+  const [bubbleColorBot, setBubbleColorBot] = useState('#F3E5F5');
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY');
+  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('12h');
+
+  // Memoize the settings state object
+  const settingsState = React.useMemo(() => ({
+    autoPlay,
+    setAutoPlay,
+    showTranslationTooltip,
+    setShowTranslationTooltip,
+    isExpanded: settingsExpanded,
+    onToggle: () => setSettingsExpanded(!settingsExpanded),
+    fontSize,
+    setFontSize,
+    fontFamily,
+    setFontFamily,
+    bubbleStyle,
+    setBubbleStyle,
+    textColorUser,
+    setTextColorUser,
+    textColorBot,
+    setTextColorBot,
+    bubbleColorUser,
+    setBubbleColorUser,
+    bubbleColorBot,
+    setBubbleColorBot,
+    dateFormat,
+    setDateFormat,
+    timeFormat,
+    setTimeFormat,
+  }), [
+    autoPlay,
+    showTranslationTooltip,
+    settingsExpanded,
+    fontSize,
+    fontFamily,
+    bubbleStyle,
+    textColorUser,
+    textColorBot,
+    bubbleColorUser,
+    bubbleColorBot,
+    dateFormat,
+    timeFormat,
+  ]);
 
   useEffect(() => {
     async function loadMessages() {
@@ -142,11 +195,20 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
     }
   };
 
-  const handleInputChange = (event) => {
+  // Memoize event handlers
+  const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
-  };
+  }, []);
 
-  const keyPress = (e) => {
+  const handlePlayStateChange = useCallback((messageId: string, isPlaying: boolean) => {
+    if (isPlaying) {
+      setCurrentlyPlayingMessageId(messageId);
+    } else if (currentlyPlayingMessageId === messageId) {
+      setCurrentlyPlayingMessageId(null);
+    }
+  }, [currentlyPlayingMessageId]);
+
+  const keyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (handleSubmit) {
@@ -156,7 +218,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
         sendButtonref.current.click();
       }
     }
-  };
+  }, [handleSubmit]);
 
   const handleNewChatClick = async () => {
     setShowLanguageDialog(true);
@@ -218,17 +280,21 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
             {currentChatId !== null && chats[currentChatId] && (
               chats[currentChatId].messages.map((message, index) => (
                 <Message
-                  key={message.id}
+                  key={`${currentChatId}-${message.id}`}
                   message={message}
                   canPlay={currentlyPlayingMessageId === null || currentlyPlayingMessageId === message.id}
-                  onPlayStateChange={(messageId, isPlaying) => {
-                    if (isPlaying) {
-                      setCurrentlyPlayingMessageId(messageId);
-                    } else if (currentlyPlayingMessageId === messageId) {
-                      setCurrentlyPlayingMessageId(null);
-                    }
-                  }}
+                  onPlayStateChange={handlePlayStateChange}
                   previousMessageDate={index > 0 ? chats[currentChatId].messages[index - 1].addedAt : null}
+                  showTranslationTooltip={showTranslationTooltip}
+                  bubbleStyle={bubbleStyle}
+                  textColorUser={textColorUser}
+                  textColorBot={textColorBot}
+                  bubbleColorUser={bubbleColorUser}
+                  bubbleColorBot={bubbleColorBot}
+                  fontSize={fontSize}
+                  fontFamily={fontFamily}
+                  dateFormat={dateFormat}
+                  timeFormat={timeFormat}
                 />
               ))
             )}
@@ -251,6 +317,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
               </Grid>
             </Grid>
           </Box>
+
         </Box>
       ) : (
         <Box sx={{
@@ -264,12 +331,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
           <ChatStarter />
         </Box>
       )}
-      <Settings
-        autoPlay={autoPlay}
-        setAutoPlay={setAutoPlay}
-        isExpanded={settingsExpanded}
-        onToggle={() => setSettingsExpanded(!settingsExpanded)}
-      />
+      <Settings {...settingsState} />
     </div>
   );
 };
