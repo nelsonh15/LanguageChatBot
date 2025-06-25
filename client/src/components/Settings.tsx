@@ -84,16 +84,6 @@ const Settings = memo(function Settings({
   timeFormat = '12h',
   setTimeFormat,
 }: SettingsProps) {
-  const fontSizeMarks = [
-    { value: 12, label: '12px' },
-    { value: 14, label: '14px' },
-    { value: 16, label: '16px' },
-    { value: 18, label: '18px' },
-    { value: 20, label: '20px' },
-    { value: 22, label: '22px' },
-    { value: 24, label: '24px' },
-  ];
-
   const fontFamilies = ['Arial', 'Montserrat', 'Open Sans', 'Roboto', 'Segoe UI', 'Verdana'];
   const dateFormats = ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'Full Date Format'];
 
@@ -204,17 +194,19 @@ const Settings = memo(function Settings({
             <AccordionDetails>
               <Stack spacing={3}>
                 <Box>
-                  <Typography variant="body2" gutterBottom>Font Size</Typography>
-                  <Slider
-                    value={fontSize}
-                    onChange={handleFontSizeChange}
-                    min={12}
-                    max={24}
-                    step={2}
-                    marks={fontSizeMarks}
-                    valueLabelDisplay="auto"
-                    size="small"
-                  />
+                  <Typography id="font-size-slider" variant="body2" gutterBottom>Font Size</Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Typography sx={{ fontSize: '1rem' }}>A</Typography>
+                    <Slider
+                      value={fontSize}
+                      onChange={handleFontSizeChange}
+                      min={12}
+                      max={24}
+                      aria-labelledby="font-size-slider"
+                      size="small"
+                    />
+                    <Typography sx={{ fontSize: '2rem' }}>A</Typography>
+                  </Stack>
                 </Box>
                 <FormControl size="small">
                   <InputLabel>Font Family</InputLabel>

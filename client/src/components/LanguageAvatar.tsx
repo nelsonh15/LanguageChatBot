@@ -1,64 +1,59 @@
 import React from 'react';
 import { Avatar } from '@mui/material';
+import Flag from 'react-flagpack'
 
 const LANGUAGE_CODES: Record<string, string> = {
-  "Afrikaans": "AF",
-  "Arabic": "AR",
-  "Armenian": "HY",
+  "Afrikaans": "ZA",
+  "Arabic": "SA",
+  "Armenian": "AM",
   "Azerbaijani": "AZ",
-  "Belarusian": "BE",
-  "Bosnian": "BS",
+  "Belarusian": "BY",
+  "Bosnian": "BA",
   "Bulgarian": "BG",
-  "Catalan": "CA",
-  "Chinese": "ZH",
+  "Catalan": "AD",
+  "Chinese": "CN",
   "Croatian": "HR",
-  "Czech": "CS",
-  "Danish": "DA",
+  "Czech": "CZ",
+  "Danish": "DK",
   "Dutch": "NL",
-  "English": "EN",
-  "Estonian": "ET",
+  "English": "US",
+  "Estonian": "EE",
   "Finnish": "FI",
   "French": "FR",
-  "Galician": "GL",
   "German": "DE",
-  "Greek": "EL",
-  "Hebrew": "HE",
-  "Hindi": "HI",
+  "Greek": "GR",
+  "Hebrew": "IL",
+  "Hindi": "IN",
   "Hungarian": "HU",
   "Icelandic": "IS",
   "Indonesian": "ID",
   "Italian": "IT",
-  "Japanese": "JA",
-  "Kannada": "KN",
-  "Kazakh": "KK",
-  "Korean": "KO",
+  "Japanese": "JP",
+  "Kazakh": "KZ",
+  "Korean": "KR",
   "Latvian": "LV",
   "Lithuanian": "LT",
   "Macedonian": "MK",
-  "Malay": "MS",
-  "Marathi": "MR",
-  "Maori": "MI",
-  "Nepali": "NE",
+  "Malay": "MY",
+  "Maori": "NZ",
+  "Nepali": "NP",
   "Norwegian": "NO",
-  "Persian": "FA",
+  "Persian": "IR",
   "Polish": "PL",
-  "Portuguese": "PT",
+  "Portuguese": "BR",
   "Romanian": "RO",
   "Russian": "RU",
-  "Serbian": "SR",
+  "Serbian": "RS",
   "Slovak": "SK",
-  "Slovenian": "SL",
+  "Slovenian": "SI",
   "Spanish": "ES",
-  "Swahili": "SW",
-  "Swedish": "SV",
-  "Tagalog": "TL",
-  "Tamil": "TA",
+  "Swedish": "SE",
+  "Tagalog": "PH",
   "Thai": "TH",
   "Turkish": "TR",
-  "Ukrainian": "UK",
-  "Urdu": "UR",
-  "Vietnamese": "VI",
-  "Welsh": "CY"
+  "Ukrainian": "UA",
+  "Urdu": "PK",
+  "Vietnamese": "VN"
 };
 
 interface LanguageAvatarProps {
@@ -72,70 +67,14 @@ const LanguageAvatar: React.FC<LanguageAvatarProps> = ({ primaryLanguage, transl
 
   return (
     <Avatar sx={{
-      width: 40,
-      height: 40,
+      width: 50,
+      height: 50,
       position: 'relative',
       overflow: 'hidden',
       bgcolor: 'transparent'
     }}>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {/* Background split */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          background: `linear-gradient(135deg, 
-            #1ebefc 50%, 
-            #ffffff 50%)`
-        }} />
-
-        {/* Text container */}
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {/* Primary language code */}
-          <div style={{
-            position: 'absolute',
-            top: '35%',
-            left: '30%',
-            transform: 'translate(-50%, -50%)',
-            color: '#ffffff',
-            fontSize: '0.75rem',
-            fontWeight: 'bold'
-          }}>
-            {primaryCode}
-          </div>
-
-          {/* Translated language code */}
-          <div style={{
-            position: 'absolute',
-            bottom: '35%',
-            right: '30%',
-            transform: 'translate(50%, 50%)',
-            color: '#000000',
-            fontSize: '0.75rem',
-            fontWeight: 'bold'
-          }}>
-            {translatedCode}
-          </div>
-        </div>
-      </div>
+      <Flag code={primaryCode} size="m" />
+      <Flag code={translatedCode} size="m" />
     </Avatar>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Box, TextField, Button, Grid, IconButton } from "@mui/material";
+import { Box, TextField, Button, Grid, IconButton, Paper, Tooltip } from "@mui/material";
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import SendIcon from "@mui/icons-material/Send";
-import SettingsIcon from "@mui/icons-material/Settings";
 import Chats from "./Chats";
 import Message from "./Message";
 import { addChat, deleteChat, addMessages, updateChatName } from "../firebase";
@@ -275,7 +275,33 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
           bgcolor: "grey.300",
           border: '2px solid #4682B4'
         }}>
-          <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
+          <Box
+            sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              bgcolor: "rgba(255, 255, 255, 0.8)",
+              p: 0.71,
+              borderBottom: '1px solid rgba(70, 130, 180, 0.3)',
+              backdropFilter: "blur(8px)"
+            }}
+          >
+            {/* Message panel content */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              width: '100%',
+            }}>
+              <Tooltip title="Voice Call" arrow placement="bottom">
+                <IconButton>
+                  <PhoneInTalkIcon fontSize="large" color="primary" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+
+          </Box>
+
+          <Box sx={{ flexGrow: 1, overflow: "auto", p: 2, position: "relative" }}>
             {/* Render messages based on the current chat */}
             {currentChatId !== null && chats[currentChatId] && (
               chats[currentChatId].messages.map((message, index) => (

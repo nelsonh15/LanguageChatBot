@@ -144,7 +144,7 @@ const Message: React.FC<MessageProps> = memo(({
       case 'classic':
         return isBot ? '20px 20px 20px 0' : '20px 20px 0 20px';
       default: // rounded
-        return isBot ? '20px 20px 20px 5px' : '20px 20px 5px 20px';
+        return isBot ? '30px 30px 30px 30px' : '30px 30px 30px 30px';
     }
   };
 
@@ -163,7 +163,7 @@ const Message: React.FC<MessageProps> = memo(({
             {isBot ? 'B' : 'U'}
           </Avatar>
           {showTranslationTooltip ? (
-            <Tooltip title={<p style={{ color: 'white', fontSize: '15px' }}>{message.translated || ''}</p>} placement={isBot ? 'right' : 'left'}>
+            <Tooltip title={<p style={{ color: 'white', fontSize: '15px' }}>{message.translated || ''}</p>} arrow placement={isBot ? 'right' : 'left'}>
               <Paper
                 variant="outlined"
                 sx={{
@@ -177,6 +177,41 @@ const Message: React.FC<MessageProps> = memo(({
                   borderRadius: getBubbleStyle(isBot),
                   minWidth: '6vw',
                   maxWidth: '60%',
+                  position: 'relative',
+                  ...(bubbleStyle === 'classic' && {
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      ...(isBot ? {
+                        left: -8,
+                        borderRight: `9px solid ${bubbleColorBot}`
+                      } : {
+                        right: -8,
+                        borderLeft: `9px solid ${bubbleColorUser}`
+                      }),
+                      bottom: 10,
+                      borderTop: '8px solid transparent',
+                      borderBottom: '8px solid transparent',
+                      zIndex: 1
+                    }
+                  }),
+                  ...(bubbleStyle === 'classic' && {
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      ...(isBot ? {
+                        left: -9,
+                        borderRight: '9px solid rgba(0, 0, 0, 0.10)'
+                      } : {
+                        right: -9,
+                        borderLeft: '9px solid rgba(0, 0, 0, 0.10)'
+                      }),
+                      bottom: 10,
+                      borderTop: '8px solid transparent',
+                      borderBottom: '8px solid transparent',
+                      zIndex: 0
+                    }
+                  })
                 }}>
                 <Typography variant="body1" sx={{ fontSize: fontSize, fontFamily: fontFamily, color: isBot ? textColorBot : textColorUser }}>{message.content}</Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -207,6 +242,41 @@ const Message: React.FC<MessageProps> = memo(({
                 borderRadius: getBubbleStyle(isBot),
                 minWidth: '6vw',
                 maxWidth: '60%',
+                position: 'relative',
+                ...(bubbleStyle === 'classic' && {
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    ...(isBot ? {
+                      left: -8,
+                      borderRight: `9px solid ${bubbleColorBot}`
+                    } : {
+                      right: -8,
+                      borderLeft: `9px solid ${bubbleColorUser}`
+                    }),
+                    bottom: 10,
+                    borderTop: '8px solid transparent',
+                    borderBottom: '8px solid transparent',
+                    zIndex: 1
+                  }
+                }),
+                ...(bubbleStyle === 'classic' && {
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    ...(isBot ? {
+                      left: -9,
+                      borderRight: '9px solid rgba(0, 0, 0, 0.10)'
+                    } : {
+                      right: -9,
+                      borderLeft: '9px solid rgba(0, 0, 0, 0.10)'
+                    }),
+                    bottom: 10,
+                    borderTop: '8px solid transparent',
+                    borderBottom: '8px solid transparent',
+                    zIndex: 0
+                  }
+                })
               }}>
               <Typography variant="body1" sx={{ fontSize: fontSize, fontFamily: fontFamily, color: isBot ? textColorBot : textColorUser }}>{message.content}</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
