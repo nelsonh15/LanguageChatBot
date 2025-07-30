@@ -89,7 +89,7 @@ export default function App() {
               }
             />
             <Route path="/stats" element={user ? <Stats /> : <Home />} />
-            <Route path="/profile" element={user ? <Profile /> : <Home />} />
+            <Route path="/profile" element={user ? <Profile user={user}/> : <Home />} />
           </Routes>
         </Box>
       </Box>
