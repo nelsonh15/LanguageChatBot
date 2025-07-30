@@ -18,7 +18,7 @@ export async function secureApiCall(endpoint, method, body) {
   // Handle response
   if (response.ok) {
     return response;
-  } 
+  }
   else if (response.status === 403) {
     // If token is expired or unauthorized, log out the user
     await signOut(auth); // Ensure you import signOut from Firebase auth
@@ -27,6 +27,8 @@ export async function secureApiCall(endpoint, method, body) {
   }
   else {
     // Handle error
-    console.error('API call failed', response.statusText);
+    const errorText = await response.text();
+    console.error('API call failed', response.statusText, errorText);
+    throw new Error(`API call failed: ${response.status} ${response.statusText} - ${errorText}`);
   }
 }

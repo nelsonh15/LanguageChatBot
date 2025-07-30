@@ -2,11 +2,11 @@
 import React, { useState, useEffect, memo } from 'react';
 import { Box, Typography, Avatar, Paper, Tooltip, IconButton, Zoom, Fade } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import PauseCircleOutlineIcon from '@mui/icons-material/PauseCircleOutline';
-import { handleTextToSpeech } from '../state/api.js';
+import { handleTextToSpeech } from '../../state/api.js';
 
 interface MessageProps {
   message: any;
+  user: any;
   canPlay: boolean;
   onPlayStateChange: (messageId: string, isPlaying: boolean) => void;
   previousMessageDate: { seconds: number; nanoseconds: number } | null;
@@ -24,6 +24,7 @@ interface MessageProps {
 
 const Message: React.FC<MessageProps> = memo(({
   message,
+  user,
   canPlay,
   onPlayStateChange,
   previousMessageDate,
@@ -159,8 +160,10 @@ const Message: React.FC<MessageProps> = memo(({
       )}
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: isBot ? 'flex-start' : 'flex-end', mb: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: isBot ? 'row' : 'row-reverse', alignItems: 'end' }}>
-          <Avatar sx={{ bgcolor: isBot ? 'primary.main' : 'secondary.main' }}>
-            {isBot ? 'B' : 'U'}
+          <Avatar 
+            src={isBot ? undefined : user?.photoURL ? user.photoURL: undefined}
+            sx={{ bgcolor: isBot ? 'primary.main' : 'secondary.main' }}
+          >
           </Avatar>
           {showTranslationTooltip ? (
             <Tooltip title={<p style={{ color: 'white', fontSize: '15px' }}>{message.translated || ''}</p>} arrow placement={isBot ? 'right' : 'left'}>

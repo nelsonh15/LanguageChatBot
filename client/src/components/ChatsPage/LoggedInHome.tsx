@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Box, TextField, Button, Grid, IconButton, Paper, Tooltip } from "@mui/material";
+import { Box, TextField, Button, Grid, IconButton, Paper, Tooltip, Snackbar } from "@mui/material";
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import SendIcon from "@mui/icons-material/Send";
 import Chats from "./Chats";
 import Message from "./Message";
-import { addChat, deleteChat, addMessages, updateChatName } from "../firebase";
+import { addChat, deleteChat, addMessages, updateChatName, updateUserSettings, getUserSettings } from "../../firebase";
 import ChatStarter from "./ChatStarter";
+import VoiceCall from "./VoiceCall";
 import LanguageDialog from "./LanguageDialog";
 import Settings from "./Settings";
-import { translatedText, handleTextToSpeech, chatCompletion } from "../state/api";
+import { translatedText, handleTextToSpeech, chatCompletion } from "../../state/api";
 import SpeechToText from "./SpeechToText";
 import { User } from 'firebase/auth';
 
@@ -17,61 +19,95 @@ interface LoggedInHomeProps {
   user: User;
   chats: Record<string, any>;
   setChats: React.Dispatch<React.SetStateAction<Record<string, any>>>;
+  settings: any[];
+  setUserSettings: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps) => {
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref,
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
+const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSettings }: LoggedInHomeProps) => {
   const [input, setInput] = useState("");
   const chatBoxRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
   const sendButtonref = useRef<HTMLButtonElement | null>(null);
   const [showLanguageDialog, setShowLanguageDialog] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
-  const [autoPlay, setAutoPlay] = useState(false);
-  const [showTranslationTooltip, setShowTranslationTooltip] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chatLanguage, setChatLanguage] = useState(null);
   const [chatTranslatedLang, setChatTranslatedLang] = useState(null);
   const [messages, setMessages] = useState([{ content: "", role: 'system' }]);
   const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+  const [settingsPreview, setSettingsPreview] = useState(settings[0]);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
 
-  // New settings state
-  const [fontSize, setFontSize] = useState(16);
-  const [fontFamily, setFontFamily] = useState('Arial');
-  const [bubbleStyle, setBubbleStyle] = useState<'rounded' | 'square' | 'classic'>('rounded');
-  const [textColorUser, setTextColorUser] = useState('#000000');
-  const [textColorBot, setTextColorBot] = useState('#000000');
-  const [bubbleColorUser, setBubbleColorUser] = useState('#E3F2FD');
-  const [bubbleColorBot, setBubbleColorBot] = useState('#F3E5F5');
-  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY');
-  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('12h');
+  useEffect(() => {
+    if (settings[0] && !hasUnsavedChanges) {
+      setSettingsPreview(settings[0]);
+    }
+  }, [settings]);
+
+  // Deep compare settingsPreview and settings[0] to determine unsaved changes
+  const hasUnsavedChanges = settings[0] && settingsPreview && JSON.stringify(settingsPreview) !== JSON.stringify(settings[0]);
+
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      setSnackbar({ open: true, message: 'Changes not saved', severity: 'warning' });
+    }
+  }, [hasUnsavedChanges]);
+
+  // Use settingsPreview for all settings values
+  const fontSize = settingsPreview?.fontSize ?? 16;
+  const fontFamily = settingsPreview?.fontFamily ?? 'Arial';
+  const bubbleStyle = settingsPreview?.bubbleStyle ?? 'rounded';
+  const textColorUser = settingsPreview?.textColorUser ?? '#000000';
+  const textColorBot = settingsPreview?.textColorBot ?? '#000000';
+  const bubbleColorUser = settingsPreview?.bubbleColorUser ?? '#E3F2FD';
+  const bubbleColorBot = settingsPreview?.bubbleColorBot ?? '#F3E5F5';
+  const dateFormat = settingsPreview?.dateFormat ?? 'MM/DD/YYYY';
+  const timeFormat = settingsPreview?.timeFormat ?? '12h';
+  const autoPlay = settingsPreview?.autoPlay ?? false;
+  const showTranslationTooltip = settingsPreview?.showTranslationTooltip ?? false;
+
+  const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar(null);
+  };
 
   // Memoize the settings state object
   const settingsState = React.useMemo(() => ({
     autoPlay,
-    setAutoPlay,
+    setAutoPlay: (v) => setSettingsPreview(prev => ({ ...prev, autoPlay: v })),
     showTranslationTooltip,
-    setShowTranslationTooltip,
+    setShowTranslationTooltip: (v) => setSettingsPreview(prev => ({ ...prev, showTranslationTooltip: v })),
     isExpanded: settingsExpanded,
     onToggle: () => setSettingsExpanded(!settingsExpanded),
     fontSize,
-    setFontSize,
+    setFontSize: (v) => setSettingsPreview(prev => ({ ...prev, fontSize: v })),
     fontFamily,
-    setFontFamily,
+    setFontFamily: (v) => setSettingsPreview(prev => ({ ...prev, fontFamily: v })),
     bubbleStyle,
-    setBubbleStyle,
+    setBubbleStyle: (v) => setSettingsPreview(prev => ({ ...prev, bubbleStyle: v })),
     textColorUser,
-    setTextColorUser,
+    setTextColorUser: (v) => setSettingsPreview(prev => ({ ...prev, textColorUser: v })),
     textColorBot,
-    setTextColorBot,
+    setTextColorBot: (v) => setSettingsPreview(prev => ({ ...prev, textColorBot: v })),
     bubbleColorUser,
-    setBubbleColorUser,
+    setBubbleColorUser: (v) => setSettingsPreview(prev => ({ ...prev, bubbleColorUser: v })),
     bubbleColorBot,
-    setBubbleColorBot,
+    setBubbleColorBot: (v) => setSettingsPreview(prev => ({ ...prev, bubbleColorBot: v })),
     dateFormat,
-    setDateFormat,
+    setDateFormat: (v) => setSettingsPreview(prev => ({ ...prev, dateFormat: v })),
     timeFormat,
-    setTimeFormat,
+    setTimeFormat: (v) => setSettingsPreview(prev => ({ ...prev, timeFormat: v })),
   }), [
     autoPlay,
     showTranslationTooltip,
@@ -244,6 +280,49 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
     }
   };
 
+  // Function to get voice configuration based on chat language
+  const getVoiceConfig = (language: string) => {
+    return {
+      name: "Language Chatbot",
+      firstMessage: "hej hej. hur mår du idag? vad heter du? är du svensk eller vad",
+      firstMessageInterruptionsEnabled: false,
+      firstMessageMode: "assistant-speaks-first",
+      model: {
+        provider: "openai",
+        model: "gpt-4o-mini",
+        messages: [{ role: "system", content: `Only speak ${language} to the user` }],
+      },
+      voice: {
+        provider: "openai",
+        voiceId: "Nova"
+      },
+      transcriber: {
+        language: `${language}`,
+        provider: "google",
+        model: 'gemini-2.0-flash',
+      },
+
+      backgroundSpeechDenoisingPlan: {
+        smartDenoisingPlan: {
+          enabled: true
+        },
+      },
+      startSpeakingPlan: {
+        transcriptionEndpointingPlan: {
+          onPunctuationSeconds: 0.1,
+          onNoPunctuationSeconds: 1.5,
+          onNumberSeconds: 0.5
+        },
+        waitSeconds: 0.4
+      },
+      stopSpeakingPlan: {
+        numWords: 0,
+        voiceSeconds: 0.2,
+        backoffSeconds: 1.0
+      }
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "row", margin: 0, padding: 0, height: "100vh", width: "100%" }}>
       <Box sx={{
@@ -293,7 +372,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
               width: '100%',
             }}>
               <Tooltip title="Voice Call" arrow placement="bottom">
-                <IconButton>
+                <IconButton onClick={() => setShowVoiceCall(true)}>
                   <PhoneInTalkIcon fontSize="large" color="primary" />
                 </IconButton>
               </Tooltip>
@@ -308,6 +387,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
                 <Message
                   key={`${currentChatId}-${message.id}`}
                   message={message}
+                  user={user}
                   canPlay={currentlyPlayingMessageId === null || currentlyPlayingMessageId === message.id}
                   onPlayStateChange={handlePlayStateChange}
                   previousMessageDate={index > 0 ? chats[currentChatId].messages[index - 1].addedAt : null}
@@ -357,7 +437,38 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats }: LoggedInHomeProps
           <ChatStarter />
         </Box>
       )}
-      <Settings {...settingsState} />
+      <Settings
+        {...settingsState}
+        hasUnsavedChanges={hasUnsavedChanges}
+        onSave={async () => {
+          const success = await updateUserSettings(user, settingsPreview);
+          if (success) {
+            // Optimistically update the state to disable the save button immediately
+            setUserSettings([settingsPreview]);
+            setSnackbar({ open: true, message: 'Settings saved!', severity: 'success' });
+          } else {
+            setSnackbar({ open: true, message: 'Failed to save settings.', severity: 'error' });
+          }
+        }}
+      />
+      {showVoiceCall && (
+        <VoiceCall
+          apiKey={import.meta.env.VITE_VAPI_API_KEY}
+          assistantId={import.meta.env.VITE_VAPI_ASSISTANT_ID}
+          config={getVoiceConfig(chatLanguage)}
+          onClose={() => setShowVoiceCall(false)}
+          chatLanguage={chatLanguage}
+          translatedLanguage={chatTranslatedLang}
+        />
+        // <VapiWidget apiKey={import.meta.env.VITE_VAPI_API_KEY} assistantId={import.meta.env.VITE_VAPI_ASSISTANT_ID} />
+      )}
+      {snackbar && (
+        <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      )}
     </div>
   );
 };

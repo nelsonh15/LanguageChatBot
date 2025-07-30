@@ -70,7 +70,7 @@ export default function Sidebar() {
   }));
   const navigationItems = [
     { id: "chats", icon: BsChatLeftTextFill, label: "Chats", path: "/loggedin", showDivider: true },
-    { id: "analytics", icon: FaChartBar, label: "Analytics", path: "/analytics" },
+    { id: "stats", icon: FaChartBar, label: "Stats", path: "/stats" },
     { id: "profile", icon: FaUser, label: "Profile", path: "/profile" },
   ];
 

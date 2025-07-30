@@ -7,7 +7,7 @@ import {
   CircularProgress,
   Fab
 } from "@mui/material";
-import { handleSpeechToText } from "../state/api";
+import { handleSpeechToText } from "../../state/api";
 import KeyboardVoiceOutlinedIcon from '@mui/icons-material/KeyboardVoiceOutlined';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 

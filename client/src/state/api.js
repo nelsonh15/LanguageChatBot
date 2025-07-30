@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 import { secureApiCall } from "../services/apiService.tsx";
-import SessionExpired from '../components/SessionExpired';
 
 export async function getAIText(inputText, inputLanguage) {
   try {

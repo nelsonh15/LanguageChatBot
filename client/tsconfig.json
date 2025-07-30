@@ -1,10 +1,13 @@
 {
     "compilerOptions": {
-      "module": "commonjs",
-      "target": "ES6",
+      "module": "esnext",
+      "target": "ES2017",
+      "lib": ["ES2017", "DOM", "DOM.Iterable"],
       "jsx": "react",
       "esModuleInterop": true,
       "allowSyntheticDefaultImports": true,
+      "moduleResolution": "node",
+      "types": ["vite/client", "node"],
       // Other options...
   
       "baseUrl": "./",

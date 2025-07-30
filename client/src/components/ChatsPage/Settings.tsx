@@ -21,6 +21,7 @@ import {
   AccordionDetails,
   Paper,
   alpha,
+  Button,
 } from "@mui/material";
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -56,6 +57,8 @@ interface SettingsProps {
   setDateFormat: (value: string) => void;
   timeFormat: '12h' | '24h';
   setTimeFormat: (value: '12h' | '24h') => void;
+  onSave: () => void;
+  hasUnsavedChanges: boolean;
 }
 
 const Settings = memo(function Settings({
@@ -83,6 +86,8 @@ const Settings = memo(function Settings({
   setDateFormat,
   timeFormat = '12h',
   setTimeFormat,
+  onSave,
+  hasUnsavedChanges
 }: SettingsProps) {
   const fontFamilies = ['Arial', 'Montserrat', 'Open Sans', 'Roboto', 'Segoe UI', 'Verdana'];
   const dateFormats = ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'Full Date Format'];
@@ -360,7 +365,7 @@ const Settings = memo(function Settings({
                   <Select
                     value={dateFormat}
                     onChange={handleDateFormatChange}
-                    label="Font Family"
+                    label="Date Format"
                   >
                     {dateFormats.map((format) => (
                       <MenuItem key={format} value={format}>{format}</MenuItem>
@@ -444,8 +449,14 @@ const Settings = memo(function Settings({
               </FormControl>
             </AccordionDetails>
           </Accordion>
+          <Box sx={{ display: 'flex', justifyContent: 'center', padding: 3 }}>
+            <Button variant="contained" disabled={!hasUnsavedChanges} onClick={onSave}>Save</Button>
+          </Box>
+
         </Box>
+
       )}
+
     </Paper>
   );
 });

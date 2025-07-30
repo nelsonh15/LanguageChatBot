@@ -233,4 +233,36 @@ export async function updateChatName(user: User, chatId: string, newName: string
   }
 }
 
+export async function getUserSettings(user: User) {
+  try {
+    const settingsRef = collection(db, 'settings');
+    const settingsSnapshot = await getDocs(
+      query(
+        settingsRef,
+        where('userID', '==', user.uid)
+      )
+    );
+    // Map over docs to extract data and include the document ID
+    return settingsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  }
+  catch (error) {
+    console.log(error.message);
+  }
+}
+
+export async function updateUserSettings(user: User, settings: any) {
+  try {
+    if (!settings.id) throw new Error('Settings object must have an id');
+    const settingsRef = doc(db, 'settings', settings.id);
+    await setDoc(settingsRef, settings, { merge: true });
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+}
+
 export { db };

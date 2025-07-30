@@ -2,18 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from './components/Sidebar';
 import Home from './components/Home';
-import LoggedInHome from './components/LoggedInHome';
-import Analytics from './components/Analytics';
-import Profile from './components/Profile';
-import { onAuthStateChangedHelper, getUserChatsandMessages } from './firebase';
-import SessionExpired from './components/SessionExpired'; // Ensure this is correctly imported
+import LoggedInHome from './components/ChatsPage/LoggedInHome';
+import Stats from './components/Stats';
+import Profile from './components/ProfilePage/Profile';
+import { onAuthStateChangedHelper, getUserChatsandMessages, getUserSettings } from './firebase';
+import SessionExpired from './components/ChatsPage/SessionExpired'; // Ensure this is correctly imported
 import { Box } from '@mui/material';
 import './App.css';
+import './styles/theme.css';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const [chats, setChats] = useState({});
+  const [userSettings, setUserSettings] = useState({});
 
   useEffect(() => {
     const unsubscribe = onAuthStateChangedHelper((user) => {
@@ -43,7 +45,16 @@ export default function App() {
         }
       }
     };
+    const fetchSettings = async () => {
+      if (user) {
+        const userSettings = await getUserSettings(user);
+        if (userSettings) {
+          setUserSettings(userSettings);
+        }
+      }
+    }
     fetchData();
+    fetchSettings();
   }, [user]);
 
   return (
@@ -69,13 +80,15 @@ export default function App() {
                     user={user}
                     chats={chats}
                     setChats={setChats}
+                    settings={userSettings}
+                    setUserSettings={setUserSettings}
                   />
                 ) : (
                   <Home />
                 )
               }
             />
-            <Route path="/analytics" element={user ? <Analytics /> : <Home />} />
+            <Route path="/stats" element={user ? <Stats /> : <Home />} />
             <Route path="/profile" element={user ? <Profile /> : <Home />} />
           </Routes>
         </Box>
