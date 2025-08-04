@@ -32,16 +32,16 @@ const Profile = ({ user }) => {
             {!user?.photoURL && user?.displayName?.charAt(0)?.toUpperCase()}
           </Avatar>
           <Box>
-            <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}>User Profile</Typography>
+            <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}> { user?.displayName } </Typography>
             <Typography variant="h6" sx={{ color: 'white', opacity: 0.85, mt: 1 }}>Welcome back, language explorer!</Typography>
           </Box>
         </Box>
       </Box>
 
       <Grid container spacing={4} sx={{ maxWidth: 1400, mx: 'auto', px: 3 }}>
-        <StatsCards />
-        <AccountManagement />
-        <FeedbackSupport />
+        <StatsCards user={user} />
+        <AccountManagement user={user} />
+        <FeedbackSupport user={user} />
       </Grid>
     </Box>
   );

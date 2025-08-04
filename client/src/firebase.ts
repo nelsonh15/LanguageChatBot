@@ -265,4 +265,179 @@ export async function updateUserSettings(user: User, settings: any) {
   }
 }
 
+export async function storeUserIssue(user: User, issue: string) {
+  try {
+    const issuesRef = collection(db, 'issues');
+    await addDoc(issuesRef, {
+      userID: user.uid,
+      email: user.email,
+      issue: issue,
+      createdAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+}
+
+export async function storeUserFeature(user: User, feature: string) {
+  try {
+    const featuresRef = collection(db, 'features');
+    await addDoc(featuresRef, {
+      userID: user.uid,
+      email: user.email,
+      feature: feature,
+      createdAt: serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+}
+
+export async function exportUserData(user: User) {
+  try {
+    const userId = user.uid;
+    const exportData = {
+      user: {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        creationTime: user.metadata.creationTime,
+        lastSignInTime: user.metadata.lastSignInTime,
+      },
+      chats: [],
+      messages: [],
+      settings: [],
+      issues: [],
+      features: [],
+      exportedAt: new Date().toISOString()
+    };
+
+    // Fetch all user chats
+    const chatsRef = collection(db, 'chats');
+    const chatSnapshot = await getDocs(
+      query(chatsRef, where('createdBy_userID', '==', userId))
+    );
+    
+    exportData.chats = chatSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+    }));
+
+    // Fetch all user messages
+    const messagesRef = collection(db, 'messages');
+    const messageSnapshot = await getDocs(
+      query(messagesRef, where('createdBy_userID', '==', userId))
+    );
+    
+    exportData.messages = messageSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      addedAt: doc.data().addedAt?.toDate?.()?.toISOString() || doc.data().addedAt
+    }));
+
+    // Fetch all user settings
+    const settingsRef = collection(db, 'settings');
+    const settingsSnapshot = await getDocs(
+      query(settingsRef, where('userID', '==', userId))
+    );
+    
+    exportData.settings = settingsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Fetch all user issues
+    const issuesRef = collection(db, 'issues');
+    const issuesSnapshot = await getDocs(
+      query(issuesRef, where('userID', '==', userId))
+    );
+    
+    exportData.issues = issuesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+    }));
+
+    // Fetch all user features
+    const featuresRef = collection(db, 'features');
+    const featuresSnapshot = await getDocs(
+      query(featuresRef, where('userID', '==', userId))
+    );
+    
+    exportData.features = featuresSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+    }));
+
+    return exportData;
+  } catch (error) {
+    console.log('Error exporting user data:', error.message);
+    throw error;
+  }
+}
+
+export async function deleteUserAccount(user: User) {
+  try {
+    const userId = user.uid;
+
+    // Delete all chats and their associated messages
+    const chatsRef = collection(db, 'chats');
+    const chatSnapshot = await getDocs(
+      query(chatsRef, where('createdBy_userID', '==', userId))
+    );
+
+    const chatDeletionPromises = chatSnapshot.docs.map(async (chatDoc) => {
+      const chatId = chatDoc.data().chatID;
+      
+      // Delete all messages for this chat
+      const messagesRef = collection(db, 'messages');
+      const messageSnapshot = await getDocs(
+        query(messagesRef, where('chatID', '==', chatId))
+      );
+      
+      const messageDeletionPromises = messageSnapshot.docs.map(messageDoc =>
+        deleteDoc(doc(db, 'messages', messageDoc.id))
+      );
+      
+      await Promise.all(messageDeletionPromises);
+      
+      // Delete the chat document
+      return deleteDoc(doc(db, 'chats', chatDoc.id));
+    });
+
+    await Promise.all(chatDeletionPromises);
+
+    // Delete user settings
+    const settingsRef = collection(db, 'settings');
+    const settingsSnapshot = await getDocs(
+      query(settingsRef, where('userID', '==', userId))
+    );
+    
+    const settingsDeletionPromises = settingsSnapshot.docs.map(settingsDoc =>
+      deleteDoc(doc(db, 'settings', settingsDoc.id))
+    );
+    
+    await Promise.all(settingsDeletionPromises);
+
+    // Delete user document
+    const userRef = doc(db, 'users', userId);
+    await deleteDoc(userRef);
+
+    // Delete the user's Firebase Auth account
+    await user.delete();
+
+    return true;
+  } catch (error) {
+    console.log('Error deleting user account:', error.message);
+    return false;
+  }
+}
+
 export { db };

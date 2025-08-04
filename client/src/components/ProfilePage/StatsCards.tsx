@@ -1,13 +1,27 @@
 import React from 'react';
 import { Grid, Card, CardContent, Stack, Box, Typography, Chip, LinearProgress, useTheme } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import BarChartIcon from '@mui/icons-material/BarChart';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import { User } from 'firebase/auth';
 
-const mostActiveDays = ['Monday', 'Thursday'];
-
-const StatsCards = () => {
+const StatsCards = ({ user }: { user: User }) => {
   const theme = useTheme();
+  
+  // Format the account creation date
+  const formatCreationDate = (creationTime: string) => {
+    const date = new Date(creationTime);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+  
+  const accountCreationDate = user?.metadata?.creationTime ? 
+    formatCreationDate(user.metadata.creationTime) : 
+    'Unknown';
+  
   return (
     <Grid item xs={12} md={8}>
       <Grid container spacing={3}>
@@ -18,7 +32,7 @@ const StatsCards = () => {
                 <CalendarTodayIcon fontSize="large" />
                 <Box>
                   <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Date Joined</Typography>
-                  <Typography variant="h6" fontWeight={700}>Jan 1, 2023</Typography>
+                  <Typography variant="h6" fontWeight={700}>{accountCreationDate}</Typography>
                 </Box>
               </Stack>
             </CardContent>
@@ -28,10 +42,10 @@ const StatsCards = () => {
           <Card sx={{ bgcolor: theme.palette.secondary.light, color: theme.palette.secondary.contrastText, boxShadow: 4, borderRadius: 3 }}>
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
-                <AccessTimeIcon fontSize="large" />
+                <TrendingUpIcon fontSize="large" />
                 <Box>
-                  <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Total Practice Time</Typography>
-                  <Typography variant="h6" fontWeight={700}>12 hrs 34 mins</Typography>
+                  <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Total XP</Typography>
+                  <Typography variant="h6" fontWeight={700}>0</Typography>
                 </Box>
               </Stack>
             </CardContent>
@@ -41,14 +55,10 @@ const StatsCards = () => {
           <Card sx={{ bgcolor: theme.palette.info.light, color: theme.palette.info.contrastText, boxShadow: 4, borderRadius: 3 }}>
             <CardContent>
               <Stack direction="row" alignItems="center" spacing={2}>
-                <BarChartIcon fontSize="large" />
+                <EmojiEventsIcon fontSize="large" />
                 <Box>
-                  <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Most Active Days</Typography>
-                  <Stack direction="row" spacing={1} mt={0.5}>
-                    {mostActiveDays.map(day => (
-                      <Chip key={day} label={day} size="small" color="primary" sx={{ bgcolor: 'white', color: theme.palette.primary.main, fontWeight: 700 }} />
-                    ))}
-                  </Stack>
+                  <Typography variant="subtitle2" sx={{ opacity: 0.8 }}>Achievements Earned</Typography>
+                  <Typography variant="h6" fontWeight={700}>0/69</Typography>
                 </Box>
               </Stack>
             </CardContent>
