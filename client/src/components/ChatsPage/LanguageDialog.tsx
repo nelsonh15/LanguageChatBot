@@ -1,21 +1,21 @@
 import React, { useState } from "react";
-import { 
+import {
   Button,
   Box,
-  Dialog, 
-  DialogActions, 
-  DialogContent, 
-  DialogContentText, 
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   DialogTitle,
   TextField,
-  FormControl
+  FormControl,
 } from '@mui/material';
 import LanguageDropdown from "./LanguageDropdown"
 
 const LanguageDialog = ({ open, onClose, onSubmit }) => {
   const [chatName, setChatName] = useState('');
   const [dropdown1, setdropdown1] = useState('');
-  const [dropdown2, setdropdown2] = useState(''); 
+  const [dropdown2, setdropdown2] = useState('');
 
   const handleSubmit = () => {
     onSubmit(chatName, dropdown1, dropdown2);
@@ -25,25 +25,35 @@ const LanguageDialog = ({ open, onClose, onSubmit }) => {
     onClose();
   };
   const isFormFilled = chatName && dropdown1 && dropdown2;
-  
+
   return (
     <>
       <Dialog open={open} onClose={onClose}>
         <DialogTitle align='center'>New Chat</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Create a chat name. Then, choose a language you want to speak in, as well as the language you would like a translation to.
-          </DialogContentText>
-          <TextField required autoFocus margin="dense" id="name" label="Chat Name" fullWidth variant="standard" value={chatName} onChange={(e) => setChatName(e.target.value)}/>
-            <Box component="form" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', alignItems: 'center', mt: 3}}>
+          <TextField required autoFocus margin="dense" id="name" label="Chat Name" fullWidth variant="standard" value={chatName} onChange={(e) => setChatName(e.target.value)} />
+          <Box component="form" sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', alignItems: 'center', }} >
+              <DialogContentText>
+                I want to speak in
+              </DialogContentText>
               <FormControl required sx={{ m: 1, minWidth: 120 }}>
-                <LanguageDropdown label={'Language'} setDropdown={setdropdown1}/>
+                <LanguageDropdown label={'Language'} setDropdown={setdropdown1} />
               </FormControl>
-        
-              <FormControl required sx={{ m: 1, minWidth: 120 }}>
-                <LanguageDropdown label={'Translates to'} setDropdown={setdropdown2}/>
-              </FormControl>
+              <DialogContentText>
+                and
+              </DialogContentText>
             </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'row', alignItems: 'center', }} >
+              <DialogContentText>
+                I want a translation in
+              </DialogContentText>
+            <FormControl required sx={{ m: 1, minWidth: 120 }}>
+              <LanguageDropdown label={'Translation'} setDropdown={setdropdown2} />
+            </FormControl>
+            </Box>
+          </Box>
         </DialogContent>
 
         <DialogActions>

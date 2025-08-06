@@ -25,7 +25,8 @@ export function signOut() {
   return auth.signOut();
 }
 
-export function onAuthStateChangedHelper(callback: (user: User | null) => void) {
+// Add setUserSettings as an optional callback parameter
+export function onAuthStateChangedHelper(callback: (user: User | null) => void, setUserSettings?: (settings: any[]) => void) {
 
   return onAuthStateChanged(auth, async (user) => {
     callback(user);
@@ -33,11 +34,38 @@ export function onAuthStateChangedHelper(callback: (user: User | null) => void) 
       // User is signed in, so store their information in Firestore
       try {
         const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        const isNewUser = !userDoc.exists();
+
         await setDoc(userRef, {
           user_id: user.uid,
           email: user.email,
-          // Add any other user information you want to store
-        });
+        }, { merge: true });
+
+        // Create a default settings object for new users only
+        if (isNewUser) {
+          // Use the user's UID as the document ID for settings
+          const newSettingsRef = doc(db, 'settings', user.uid);
+          const newSettings = {
+            userID: user.uid,
+            user_email: user.email,
+            autoPlay: false,
+            bubbleColorBot: '#F3E5F5',
+            bubbleColorUser: "#E3F2FD",
+            bubbleStyle: "rounded",
+            dateFormat: "MM/DD/YYYY",
+            fontFamily: "Arial",
+            fontSize: 16,
+            showTranslationTooltip: false,
+            textColorBot: "#000000",
+            textColorUser: "#000000",
+            timeFormat: "12h",
+          };
+          await setDoc(newSettingsRef, newSettings, { merge: true });
+          if (setUserSettings) {
+            setUserSettings([{ id: user.uid, ...newSettings }]);
+          }
+        }
       } catch (error) {
         console.error('Error storing user information in Firestore:', error);
       }
@@ -322,7 +350,7 @@ export async function exportUserData(user: User) {
     const chatSnapshot = await getDocs(
       query(chatsRef, where('createdBy_userID', '==', userId))
     );
-    
+
     exportData.chats = chatSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -334,7 +362,7 @@ export async function exportUserData(user: User) {
     const messageSnapshot = await getDocs(
       query(messagesRef, where('createdBy_userID', '==', userId))
     );
-    
+
     exportData.messages = messageSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -346,7 +374,7 @@ export async function exportUserData(user: User) {
     const settingsSnapshot = await getDocs(
       query(settingsRef, where('userID', '==', userId))
     );
-    
+
     exportData.settings = settingsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -357,7 +385,7 @@ export async function exportUserData(user: User) {
     const issuesSnapshot = await getDocs(
       query(issuesRef, where('userID', '==', userId))
     );
-    
+
     exportData.issues = issuesSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -369,7 +397,7 @@ export async function exportUserData(user: User) {
     const featuresSnapshot = await getDocs(
       query(featuresRef, where('userID', '==', userId))
     );
-    
+
     exportData.features = featuresSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
@@ -395,19 +423,19 @@ export async function deleteUserAccount(user: User) {
 
     const chatDeletionPromises = chatSnapshot.docs.map(async (chatDoc) => {
       const chatId = chatDoc.data().chatID;
-      
+
       // Delete all messages for this chat
       const messagesRef = collection(db, 'messages');
       const messageSnapshot = await getDocs(
         query(messagesRef, where('chatID', '==', chatId))
       );
-      
+
       const messageDeletionPromises = messageSnapshot.docs.map(messageDoc =>
         deleteDoc(doc(db, 'messages', messageDoc.id))
       );
-      
+
       await Promise.all(messageDeletionPromises);
-      
+
       // Delete the chat document
       return deleteDoc(doc(db, 'chats', chatDoc.id));
     });
@@ -419,11 +447,11 @@ export async function deleteUserAccount(user: User) {
     const settingsSnapshot = await getDocs(
       query(settingsRef, where('userID', '==', userId))
     );
-    
+
     const settingsDeletionPromises = settingsSnapshot.docs.map(settingsDoc =>
       deleteDoc(doc(db, 'settings', settingsDoc.id))
     );
-    
+
     await Promise.all(settingsDeletionPromises);
 
     // Delete user document

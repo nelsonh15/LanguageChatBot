@@ -15,12 +15,12 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const [chats, setChats] = useState({});
-  const [userSettings, setUserSettings] = useState({});
+  const [userSettings, setUserSettings] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChangedHelper((user) => {
       setUser(user);
-    });
+    }, setUserSettings);
 
     const handleSessionExpiredEvent = () => {
       setSessionExpiredOpen(true);
@@ -57,6 +57,12 @@ export default function App() {
     fetchSettings();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      setUserSettings([]);
+    }
+  }, [user]);
+
   return (
     <BrowserRouter>
       <Box sx={{
@@ -89,7 +95,7 @@ export default function App() {
               }
             />
             <Route path="/stats" element={user ? <Stats /> : <Home />} />
-            <Route path="/profile" element={user ? <Profile user={user}/> : <Home />} />
+            <Route path="/profile" element={user ? <Profile user={user} /> : <Home />} />
           </Routes>
         </Box>
       </Box>
