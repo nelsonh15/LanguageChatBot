@@ -2,12 +2,17 @@ import React from 'react';
 import { Avatar } from '@mui/material';
 import Flag from 'react-flagpack'
 
+// Fallback flag image for organizations not included in react-flagpack (e.g., Arab League)
+const ARAB_LEAGUE_FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/2/2b/Flag_of_the_Arab_League.svg';
+
 const LANGUAGE_CODES: Record<string, string> = {
   "Afrikaans": "ZA",
-  "Arabic": "SA",
+  // Use a custom image for Arabic (Arab League) instead of a country flag
+  "Arabic": "ARAB_LEAGUE",
   "Armenian": "AM",
   "Azerbaijani": "AZ",
   "Belarusian": "BY",
+  "Bengali": "BD",
   "Bosnian": "BA",
   "Bulgarian": "BG",
   "Catalan": "AD",
@@ -35,7 +40,7 @@ const LANGUAGE_CODES: Record<string, string> = {
   "Lithuanian": "LT",
   "Macedonian": "MK",
   "Malay": "MY",
-  "Maori": "NZ",
+  "Marathi": "IN",
   "Nepali": "NP",
   "Norwegian": "NO",
   "Persian": "IR",
@@ -47,13 +52,16 @@ const LANGUAGE_CODES: Record<string, string> = {
   "Slovak": "SK",
   "Slovenian": "SI",
   "Spanish": "ES",
+  "Swahili": "TZ",
   "Swedish": "SE",
   "Tagalog": "PH",
+  "Tamil": "IN",
   "Thai": "TH",
   "Turkish": "TR",
   "Ukrainian": "UA",
   "Urdu": "PK",
-  "Vietnamese": "VN"
+  "Vietnamese": "VN",
+  "Welsh": "GB-WLS"
 };
 
 interface LanguageAvatarProps {
@@ -73,8 +81,20 @@ const LanguageAvatar: React.FC<LanguageAvatarProps> = ({ primaryLanguage, transl
       overflow: 'hidden',
       bgcolor: 'transparent'
     }}>
-      <Flag code={primaryCode} size="m" />
-      <Flag code={translatedCode} size="m" />
+      {primaryCode === 'ARAB_LEAGUE' ? (
+        <span style={{ display: 'inline-flex', width: 22,  alignItems: 'center', justifyContent: 'center' }}>
+          <img src={ARAB_LEAGUE_FLAG_URL} alt="Arab League" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+        </span>
+      ) : (
+        <Flag code={primaryCode} size="m" />
+      )}
+      {translatedCode === 'ARAB_LEAGUE' ? (
+        <span style={{ display: 'inline-flex', width: 22, alignItems: 'center', justifyContent: 'center' }}>
+          <img src={ARAB_LEAGUE_FLAG_URL} alt="Arab League" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+        </span>
+      ) : (
+        <Flag code={translatedCode} size="m" />
+      )}
     </Avatar>
   );
 };
