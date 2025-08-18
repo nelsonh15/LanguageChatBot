@@ -5,7 +5,7 @@ const LanguageDropdown = ({ label, setDropdown }) => {
   const [value, setValue] = useState(null);
 
   const language_options = [
-    "Afrikaans (Afrikaans)", "(Arabic) عربي", "հայ (Armenian)", "Azərbaycan (Azerbaijani)", "Беларуская (Belarusian)",
+    "Afrikaans (Afrikaans)", "(Arabic) عربي", "հայ (Armenian)", "Azərbaycan (Azerbaijani)", "Беларуская (Belarusian)", "বাংলা (Bengali)",
     "Bosanski (Bosnian)", "български (Bulgarian)", "Català (Catalan)", "普通话 (Chinese)", "hrvatski (Croatian)", "česky (Czech)",
     "Dansk (Danish)", "Nederlands (Dutch)", "English", "eesti (Estonian)", "suomi (Finnish)", "Français (French)",
     "Galego (Galician)", "Deutsch (German)", "ελληνικά (Greek)", "(Hebrew) עִברִית", "हिंदी (Hindi)", "magyar (Hungarian)",
@@ -18,8 +18,8 @@ const LanguageDropdown = ({ label, setDropdown }) => {
   ];
 
   const languages = {
-    "Afrikaans (Afrikaans)": "Afrikaans", "عربي (Arabic)": "Arabic", "հայ (Armenian)": "Armenian", "Azərbaycan (Azerbaijani)": "Azerbaijani",
-    "Беларуская (Belarusian)": "Belarusian", "Bosanski (Bosnian)": "Bosnian", "български (Bulgarian)": "Bulgarian", "Català (Catalan)": "Catalan",
+    "Afrikaans (Afrikaans)": "Afrikaans", "(Arabic) عربي": "Arabic", "հայ (Armenian)": "Armenian", "Azərbaycan (Azerbaijani)": "Azerbaijani",
+    "Беларуская (Belarusian)": "Belarusian", "বাংলা (Bengali)": "Bengali", "Bosanski (Bosnian)": "Bosnian", "български (Bulgarian)": "Bulgarian", "Català (Catalan)": "Catalan",
     "普通话 (Chinese)": "Chinese", "hrvatski (Croatian)": "Croatian", "česky (Czech)": "Czech", "Dansk (Danish)": "Danish", "Nederlands (Dutch)": "Dutch",
     "English": "English", "eesti (Estonian)": "Estonian", "suomi (Finnish)": "Finnish", "Français (French)": "French", "Galego (Galician)": "Galician",
     "Deutsch (German)": "German", "ελληνικά (Greek)": "Greek", "(Hebrew) עִברִית": "Hebrew", "हिंदी (Hindi)": "Hindi", "magyar (Hungarian)": "Hungarian",
