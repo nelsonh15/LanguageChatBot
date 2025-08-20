@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import openAiRoutes from "./src/routes/openai.js";
 import elevenlabs from "./src/routes/elevenlabs.js"
+import googleTTSRoutes from "./src/routes/google_tts.js";
 import validateFirebaseIdToken from './src/middleware/authMiddleware.js';
 
 /* CONFIGURATIONS */
@@ -24,6 +25,7 @@ app.use(cors());
 //app.use("/elevenlabs", elevenlabs)
 //app.use('/api', validateFirebaseIdToken);
 app.use('/api/openai', validateFirebaseIdToken, openAiRoutes);
+app.use('/api/google_tts', validateFirebaseIdToken, googleTTSRoutes);
 
 /* SERVER SETUP */
 const PORT = process.env.PORT || 9000;

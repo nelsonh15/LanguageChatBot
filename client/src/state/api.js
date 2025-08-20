@@ -1,5 +1,7 @@
+/* eslint-disable no-async-promise-executor */
 /* eslint-disable no-unused-vars */
 import { secureApiCall } from "../services/apiService.tsx";
+import { languageMapping } from "../utils/languageMapping.js";
 
 export async function getAIText(inputText, inputLanguage) {
   try {
@@ -101,6 +103,90 @@ export async function handleTextToSpeech(text, setAudioUrl) {
       console.error('Error in text to speech conversion', error);
     }
   }
+}
+
+
+export async function handleSlowMotionTextToSpeech(text, audioSpeed, language) {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      if (!(language in languageMapping)) {
+        throw new Error(`Unsupported language: ${language}`);
+      }
+
+      // Create cache key based on text, audioSpeed, and language
+      const cacheKey = `slowmotion_${text}_${audioSpeed}_${language}`;
+
+      // Check if audio is already cached
+      if (localStorage.getItem(cacheKey) != null) {
+        const base64Audio = localStorage.getItem(cacheKey);
+        const byteCharacters = atob(base64Audio);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const audioBlob = new Blob([byteArray], { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Play cached audio
+        const audio = new Audio(audioUrl);
+        audio.play();
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        };
+        audio.onerror = (err) => {
+          console.error("Error playing cached audio:", err);
+          URL.revokeObjectURL(audioUrl);
+          reject(err);
+        };
+        return;
+      }
+
+      // Delay between words based on speed
+      const delayMs = Math.max(0, (1 - audioSpeed) * 1000);
+
+      // Request TTS from backend with SSML breaks
+      const response = await secureApiCall(
+        `${import.meta.env.VITE_BASE_URL}/api/google_tts/text-to-speech`,
+        'POST',
+        {
+          text,
+          langConfig: languageMapping[language],
+          delayMs,
+        }
+      );
+
+      const audioBlob = await response.blob();
+      
+      // Cache the audio blob
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = function () {
+        const base64Audio = reader.result.split(',')[1];
+        localStorage.setItem(cacheKey, base64Audio);
+      };
+
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Play once
+      const audio = new Audio(audioUrl);
+      audio.play();
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+        resolve();
+      };
+      audio.onerror = (err) => {
+        console.error("Error playing audio:", err);
+        URL.revokeObjectURL(audioUrl);
+        reject(err);
+      };
+
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 export async function handleSpeechToText(formData) {

@@ -26,11 +26,10 @@ import {
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import PaletteIcon from '@mui/icons-material/Palette';
+import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import TuneIcon from '@mui/icons-material/Tune';
 
 interface SettingsProps {
   autoPlay: boolean;
@@ -57,6 +56,8 @@ interface SettingsProps {
   setDateFormat: (value: string) => void;
   timeFormat: '12h' | '24h';
   setTimeFormat: (value: '12h' | '24h') => void;
+  audioSpeed: number;
+  setAudioSpeed: (value: number) => void;
   onSave: () => void;
   hasUnsavedChanges: boolean;
 }
@@ -86,6 +87,8 @@ const Settings = memo(function Settings({
   setDateFormat,
   timeFormat = '12h',
   setTimeFormat,
+  audioSpeed = 0.5,
+  setAudioSpeed,
   onSave,
   hasUnsavedChanges
 }: SettingsProps) {
@@ -135,6 +138,10 @@ const Settings = memo(function Settings({
   const handleTranslationTooltipChange = useCallback((e) => {
     setShowTranslationTooltip(e.target.checked);
   }, [setShowTranslationTooltip]);
+
+  const handleAudioSpeedChange = useCallback((_, value) => {
+    setAudioSpeed(value);
+  }, [setAudioSpeed]);
 
   return (
     <Paper
@@ -209,6 +216,7 @@ const Settings = memo(function Settings({
                       max={24}
                       aria-labelledby="font-size-slider"
                       size="small"
+                      valueLabelDisplay="auto"
                     />
                     <Typography sx={{ fontSize: '2rem' }}>A</Typography>
                   </Stack>
@@ -339,6 +347,18 @@ const Settings = memo(function Settings({
                     }}
                   />
                 </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showTranslationTooltip}
+                      onChange={handleTranslationTooltipChange}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">Show translation tooltip</Typography>
+                  }
+                />
               </Stack>
             </AccordionDetails>
           </Accordion>
@@ -413,40 +433,48 @@ const Settings = memo(function Settings({
                 }
               }}
             >
-              <TuneIcon sx={{ mr: 2, color: 'primary.main' }} />
+              <AudiotrackIcon sx={{ mr: 2, color: 'primary.main' }} />
               <Typography variant="subtitle1" fontWeight={500}>
-                Other Settings
+                Audio Settings
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <FormControl component="fieldset">
-                <FormGroup>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={autoPlay}
-                        onChange={handleAutoPlayChange}
-                        size="small"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">Auto-play chatbot's messages</Typography>
-                    }
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={showTranslationTooltip}
-                        onChange={handleTranslationTooltipChange}
-                        size="small"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">Show translation tooltip</Typography>
-                    }
-                  />
-                </FormGroup>
-              </FormControl>
+              <Stack spacing={3}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={autoPlay}
+                          onChange={handleAutoPlayChange}
+                          size="small"
+                        />
+                      }
+                      label={
+                        <Typography variant="body2">Auto-play chatbot's messages</Typography>
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
+
+                <Box>
+                  <Typography id="audio-speed-slider" variant="body2" gutterBottom>Audio Speed</Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Typography sx={{ fontSize: '0.875rem', minWidth: '30px' }}>0.1x</Typography>
+                    <Slider
+                      value={audioSpeed}
+                      onChange={handleAudioSpeedChange}
+                      min={0.1}
+                      max={0.9}
+                      step={0.1}
+                      aria-labelledby="audio-speed-slider"
+                      size="small"
+                      valueLabelDisplay="auto"
+                    />
+                    <Typography sx={{ fontSize: '0.875rem', minWidth: '30px' }}>0.9x</Typography>
+                  </Stack>
+                </Box>
+              </Stack>
             </AccordionDetails>
           </Accordion>
           <Box sx={{ display: 'flex', justifyContent: 'center', padding: 3 }}>

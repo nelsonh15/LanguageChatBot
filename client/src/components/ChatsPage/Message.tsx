@@ -2,7 +2,9 @@
 import React, { useState, useEffect, memo } from 'react';
 import { Box, Typography, Avatar, Paper, Tooltip, IconButton, Zoom, Fade } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import { handleTextToSpeech } from '../../state/api.js';
+import SlowMotionVideoIcon from '@mui/icons-material/SlowMotionVideo';
+import { handleTextToSpeech, handleSlowMotionTextToSpeech } from '../../state/api.js';
+import { isSlowMotionSupported } from '../../utils/languageMapping.js';
 
 interface MessageProps {
   message: any;
@@ -20,6 +22,8 @@ interface MessageProps {
   fontFamily: string;
   dateFormat: string;
   timeFormat: '12h' | '24h';
+  audioSpeed: number;
+  chatLanguage: string;
 }
 
 const Message: React.FC<MessageProps> = memo(({
@@ -37,12 +41,16 @@ const Message: React.FC<MessageProps> = memo(({
   fontSize = 16,
   fontFamily,
   dateFormat,
-  timeFormat = '12h'
+  timeFormat = '12h',
+  audioSpeed = 0.5,
+  chatLanguage = 'en'
 }) => {
   const isBot = message.role === 'assistant';
   const [audioUrl, setAudioUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [slowMotionLoading, setSlowMotionLoading] = useState(false);
+  const [isSlowMotionPlaying, setIsSlowMotionPlaying] = useState(false);
 
   useEffect(() => {
     if (audioUrl && canPlay) {
@@ -70,15 +78,40 @@ const Message: React.FC<MessageProps> = memo(({
       if (isPlaying) {
         onPlayStateChange(message.id, false);
       }
+      if (isSlowMotionPlaying) {
+        onPlayStateChange(message.id, false);
+      }
     };
-  }, [isPlaying]);
+  }, [isPlaying, isSlowMotionPlaying]);
 
   const handleClick = async () => {
-    if (!isPlaying && canPlay) { // Check if not already playing
+    if (!isPlaying && !isSlowMotionPlaying && canPlay) {
       setLoading(true);
-      await handleTextToSpeech(message.content, setAudioUrl);
+      await handleTextToSpeech(message.content, setAudioUrl, chatLanguage);
       setLoading(false);
       onPlayStateChange(message.id, true);
+    }
+  };
+
+  const handleSlowMotionClick = async () => {
+    if (!isSlowMotionSupported(chatLanguage)) {
+      return;
+    }
+    
+    if (!isSlowMotionPlaying && !isPlaying && canPlay) {
+      setSlowMotionLoading(true);
+      setIsSlowMotionPlaying(true);
+      onPlayStateChange(message.id, true);
+      
+      try {
+        await handleSlowMotionTextToSpeech(message.content, audioSpeed, chatLanguage);
+      } catch (error) {
+        console.error('Error in slow motion playback:', error);
+      } finally {
+        setSlowMotionLoading(false);
+        setIsSlowMotionPlaying(false);
+        onPlayStateChange(message.id, false);
+      }
     }
   };
 
@@ -218,9 +251,40 @@ const Message: React.FC<MessageProps> = memo(({
                 }}>
                 <Typography variant="body1" sx={{ fontSize: fontSize, fontFamily: fontFamily, color: isBot ? textColorBot : textColorUser }}>{message.content}</Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <IconButton onClick={handleClick} disabled={loading || isPlaying}>
-                    <PlayCircleOutlineIcon />
-                  </IconButton>
+                  <Tooltip title="Play Audio" arrow>
+                    <IconButton onClick={handleClick} disabled={loading || isPlaying || isSlowMotionPlaying} sx={{
+                      p: 0,
+                      m: 0,
+                      transition: 'transform 0.2s, color 0.2s',
+                      '&:hover': {
+                        transform: 'scale(1.15)',
+                        color: 'primary.main',
+                      },
+                    }}>
+                      <PlayCircleOutlineIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={isSlowMotionSupported(chatLanguage) ? "Slow Motion" : "Slow motion mode is not available in this language"} arrow>
+                    <span>
+                      <IconButton 
+                        onClick={handleSlowMotionClick} 
+                        disabled={slowMotionLoading || isSlowMotionPlaying || isPlaying || !isSlowMotionSupported(chatLanguage)} 
+                        sx={{
+                          p: 0,
+                          m: 0,
+                          transition: 'transform 0.2s, color 0.2s',
+                          '&:hover': {
+                            transform: 'scale(1.15)',
+                            color: 'primary.main',
+                          },
+                          '&:disabled': {
+                            color: !isSlowMotionSupported(chatLanguage) ? 'action.disabled' : 'inherit',
+                          },
+                        }}>
+                        <SlowMotionVideoIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                 </Box>
                 <Box sx={{
                   display: 'flex',
@@ -283,9 +347,40 @@ const Message: React.FC<MessageProps> = memo(({
               }}>
               <Typography variant="body1" sx={{ fontSize: fontSize, fontFamily: fontFamily, color: isBot ? textColorBot : textColorUser }}>{message.content}</Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <IconButton onClick={handleClick} disabled={loading || isPlaying}>
-                  <PlayCircleOutlineIcon />
-                </IconButton>
+                <Tooltip title="Play Audio" arrow>
+                  <IconButton onClick={handleClick} disabled={loading || isPlaying || isSlowMotionPlaying} sx={{
+                    p: 0,
+                    m: 0,
+                    transition: 'transform 0.2s, color 0.2s',
+                    '&:hover': {
+                      transform: 'scale(1.15)',
+                      color: 'primary.main',
+                    },
+                  }}>
+                    <PlayCircleOutlineIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={isSlowMotionSupported(chatLanguage) ? "Slow Motion" : "Slow motion mode is not available in this language"} arrow>
+                  <span>
+                    <IconButton 
+                      onClick={handleSlowMotionClick} 
+                      disabled={slowMotionLoading || isSlowMotionPlaying || isPlaying || !isSlowMotionSupported(chatLanguage)} 
+                      sx={{
+                        p: 0,
+                        m: 0,
+                        transition: 'transform 0.2s, color 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.15)',
+                          color: 'primary.main',
+                        },
+                        '&:disabled': {
+                          color: !isSlowMotionSupported(chatLanguage) ? 'action.disabled' : 'inherit',
+                        },
+                      }}>
+                      <SlowMotionVideoIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </Box>
               <Box sx={{
                 display: 'flex',

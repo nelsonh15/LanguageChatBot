@@ -74,6 +74,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
   const timeFormat = settingsPreview?.timeFormat ?? '12h';
   const autoPlay = settingsPreview?.autoPlay ?? false;
   const showTranslationTooltip = settingsPreview?.showTranslationTooltip ?? false;
+  const audioSpeed = settingsPreview?.audioSpeed ?? 0.5;
 
   const handleCloseSnackbar = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -108,6 +109,8 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
     setDateFormat: (v) => setSettingsPreview(prev => ({ ...prev, dateFormat: v })),
     timeFormat,
     setTimeFormat: (v) => setSettingsPreview(prev => ({ ...prev, timeFormat: v })),
+    audioSpeed,
+    setAudioSpeed: (v) => setSettingsPreview(prev => ({ ...prev, audioSpeed: v })),
   }), [
     autoPlay,
     showTranslationTooltip,
@@ -121,6 +124,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
     bubbleColorBot,
     dateFormat,
     timeFormat,
+    audioSpeed,
   ]);
 
   useEffect(() => {
@@ -209,7 +213,7 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
       setChats(updatedChats2);
 
       if (autoPlay) {
-        handleTextToSpeech(aiText, setAudioUrl);
+        handleTextToSpeech(aiText, setAudioUrl, chatLanguage);
       }
       setLoading(false);
     }
@@ -401,6 +405,8 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
                   fontFamily={fontFamily}
                   dateFormat={dateFormat}
                   timeFormat={timeFormat}
+                  audioSpeed={audioSpeed}
+                  chatLanguage={chatLanguage}
                 />
               ))
             )}

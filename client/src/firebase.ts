@@ -60,6 +60,7 @@ export function onAuthStateChangedHelper(callback: (user: User | null) => void, 
             textColorBot: "#000000",
             textColorUser: "#000000",
             timeFormat: "12h",
+            audioSpeed: 0.5,
           };
           await setDoc(newSettingsRef, newSettings, { merge: true });
           if (setUserSettings) {
