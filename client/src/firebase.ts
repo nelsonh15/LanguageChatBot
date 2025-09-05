@@ -74,6 +74,27 @@ export function onAuthStateChangedHelper(callback: (user: User | null) => void, 
   });
 }
 
+export async function getUserChats(user) {
+  try {
+    const chatsRef = collection(db, 'chats');
+    const chatSnapshot = await getDocs(
+      query(
+        chatsRef,
+        where('createdBy_userID', '==', user.uid),
+        orderBy('createdAt', 'asc')
+      )
+    );
+    const chats = []
+    chatSnapshot.docs.forEach((chatDoc) => {
+      chats.push({ id: chatDoc.id, ...chatDoc.data() });
+    });
+    return chats;
+  }
+  catch (error) {
+    console.error('Error retrieving user chats: ', error);
+  }
+}
+
 export async function getUserChatsandMessages(user) {
   try {
     const chatsRef = collection(db, 'chats');

@@ -151,7 +151,7 @@ const Settings = memo(function Settings({
         width: isExpanded ? "350px" : "50px",
         display: "flex",
         flexDirection: "column",
-        bgcolor: "background.paper",
+        bgcolor: "grey.200",
         transition: 'width 0.3s ease-in-out',
         borderRadius: 0,
         overflow: 'hidden',

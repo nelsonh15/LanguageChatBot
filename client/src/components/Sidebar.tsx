@@ -1,7 +1,9 @@
 import React from 'react';
 import { styled } from "@mui/system";
+import { MdOutlineShoppingCart } from "react-icons/md";
 import { FaChartBar, FaUser, FaBars, FaTimes } from "react-icons/fa";
 import { BsChatLeftTextFill } from "react-icons/bs";
+import { MdOutlineLibraryBooks } from "react-icons/md";
 import { Box, Divider, Drawer, IconButton, Tooltip, useMediaQuery, useTheme } from "@mui/material";
 import SignIn from './sign-in';
 import { useEffect, useState } from 'react';
@@ -70,7 +72,9 @@ export default function Sidebar() {
   }));
   const navigationItems = [
     { id: "chats", icon: BsChatLeftTextFill, label: "Chats", path: "/loggedin", showDivider: true },
+    { id: "review", icon: MdOutlineLibraryBooks, label: "Review", path: "/review" },
     { id: "stats", icon: FaChartBar, label: "Stats", path: "/stats" },
+    { id: "shop", icon: MdOutlineShoppingCart, label: "Shop", path: "/shop" },
     { id: "profile", icon: FaUser, label: "Profile", path: "/profile" },
   ];
 

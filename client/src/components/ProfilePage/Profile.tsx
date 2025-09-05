@@ -9,7 +9,7 @@ const mostActiveDays = ['Monday', 'Thursday'];
 const Profile = ({ user }) => {
   const theme = useTheme();
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 6 }}>
+    <Box sx={{ margin: 0, bgcolor: 'background.default', height: '100vh', boxSizing: 'border-box' }}>
       {/* Hero Section */}
       <Box
         sx={{
@@ -32,7 +32,7 @@ const Profile = ({ user }) => {
             {!user?.photoURL && user?.displayName?.charAt(0)?.toUpperCase()}
           </Avatar>
           <Box>
-            <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}> { user?.displayName } </Typography>
+            <Typography variant="h3" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}> {user?.displayName} </Typography>
             <Typography variant="h6" sx={{ color: 'white', opacity: 0.85, mt: 1 }}>Welcome back, language explorer!</Typography>
           </Box>
         </Box>

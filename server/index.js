@@ -7,6 +7,7 @@ import morgan from "morgan";
 import openAiRoutes from "./src/routes/openai.js";
 import elevenlabs from "./src/routes/elevenlabs.js"
 import googleTTSRoutes from "./src/routes/google_tts.js";
+import nlpRoutes from "./src/routes/nlp.js";
 import validateFirebaseIdToken from './src/middleware/authMiddleware.js';
 
 /* CONFIGURATIONS */
@@ -26,6 +27,7 @@ app.use(cors());
 //app.use('/api', validateFirebaseIdToken);
 app.use('/api/openai', validateFirebaseIdToken, openAiRoutes);
 app.use('/api/google_tts', validateFirebaseIdToken, googleTTSRoutes);
+app.use('/api/nlp', validateFirebaseIdToken, nlpRoutes);
 
 /* SERVER SETUP */
 const PORT = process.env.PORT || 9000;

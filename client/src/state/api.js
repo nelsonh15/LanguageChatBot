@@ -64,6 +64,26 @@ export async function chatCompletion(messages, inputLanguage) {
   }
 }
 
+export async function textNLP(text, inputLanguage) {
+  try {
+    const response = await secureApiCall(
+      `${import.meta.env.VITE_BASE_URL}/api/nlp/extract-nouns`,
+      'POST',
+      { text: text, language: inputLanguage },
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    }
+    else {
+      console.error("Error from server: Status Code " + response.status);
+    }
+  } catch (error) {
+    console.error("Error sending message", error);
+  }
+}
+
 export async function handleTextToSpeech(text, setAudioUrl) {
   if (localStorage.getItem(text) != null) {
     const base64Audio = localStorage.getItem(text);

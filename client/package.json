@@ -21,6 +21,7 @@
     "@reduxjs/toolkit": "^1.9.7",
     "@vapi-ai/web": "^2.3.8",
     "aws-sdk": "^2.1476.0",
+    "country-flag-icons": "^1.5.19",
     "dayjs": "^1.11.13",
     "dotenv": "^16.3.1",
     "firebase": "^10.5.0",

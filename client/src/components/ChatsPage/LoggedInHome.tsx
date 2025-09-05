@@ -10,7 +10,7 @@ import ChatStarter from "./ChatStarter";
 import VoiceCall from "./VoiceCall";
 import LanguageDialog from "./LanguageDialog";
 import Settings from "./Settings";
-import { translatedText, handleTextToSpeech, chatCompletion } from "../../state/api";
+import { translatedText, handleTextToSpeech, chatCompletion, textNLP } from "../../state/api";
 import SpeechToText from "./SpeechToText";
 import { User } from 'firebase/auth';
 
@@ -21,6 +21,7 @@ interface LoggedInHomeProps {
   setChats: React.Dispatch<React.SetStateAction<Record<string, any>>>;
   settings: any[];
   setUserSettings: React.Dispatch<React.SetStateAction<any[]>>;
+  setChatsArray?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
@@ -30,7 +31,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSettings }: LoggedInHomeProps) => {
+const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSettings, setChatsArray }: LoggedInHomeProps) => {
   const [input, setInput] = useState("");
   const chatBoxRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
@@ -163,6 +164,11 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
       delete updatedChats[chatId];
       setChats(updatedChats);
 
+      // Update chats array for Review component
+      if (setChatsArray) {
+        setChatsArray(Object.values(updatedChats));
+      }
+
       // Update currentChatId if the deleted chat was the current chat
       if (currentChatId === chatId) {
         const remainingChatIds = Object.keys(updatedChats);
@@ -196,6 +202,8 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
       setLoading(true);
 
       const aiText = await chatCompletion(messages, chatLanguage)
+      const nouns = await textNLP(aiText, chatLanguage)
+      console.log(nouns)
       const translatedAIText = await translatedText(aiText, chatLanguage, chatTranslatedLang)
       const aiTimestamp = await addMessages(user, currentChatId, chats[currentChatId].messages.length + 1, "assistant", aiText, translatedAIText)
       const newAIMessage = {
@@ -227,7 +235,13 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
         const newChatId = newChatAndID[0];
         const newChat = newChatAndID[1];
         // Add the new chat to the list of chats
-        setChats({ ...chats, [String(newChatId)]: newChat });
+        const updatedChats = { ...chats, [String(newChatId)]: newChat };
+        setChats(updatedChats);
+
+        // Update chats array for Review component
+        if (setChatsArray) {
+          setChatsArray(Object.values(updatedChats));
+        }
 
         // Set the new chat as the current chat
         setCurrentChatId(newChatId);
@@ -281,6 +295,11 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
         chat: newName
       };
       setChats(updatedChats);
+
+      // Update chats array for Review component
+      if (setChatsArray) {
+        setChatsArray(Object.values(updatedChats));
+      }
     }
   };
 
@@ -328,15 +347,19 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", margin: 0, padding: 0, height: "100vh", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "row", margin: 0, padding: 0, height: "100vh", width: "100%", }}>
+
       <Box sx={{
-        height: "100vh",
+        minHeight: "100vh",
         width: "18vw",
         display: "flex",
         flexDirection: "column",
-        bgcolor: "grey.300",
-        border: '2px solid #4682B4',
-        overflow: 'auto'
+        bgcolor: 'grey.200',
+        overflow: 'auto',
+        boxSizing: 'border-box',
+        borderLeft: '2px solid #4682B4',
+
+        borderRight: '2px solid #4682B4',
       }}>
         <LanguageDialog open={showLanguageDialog} onClose={() => setShowLanguageDialog(false)} onSubmit={handleLanguageDialogSubmit} />
         <Chats
@@ -355,8 +378,9 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          bgcolor: "grey.300",
-          border: '2px solid #4682B4'
+          bgcolor: "grey.200",
+          boxSizing: 'border-box',
+
         }}>
           <Box
             sx={{
@@ -433,12 +457,13 @@ const LoggedInHome = ({ handleSubmit, user, chats, setChats, settings, setUserSe
         </Box>
       ) : (
         <Box sx={{
+          margin: 0,
           height: "100vh",
           flex: 1,
           display: "flex",
           flexDirection: "column",
           bgcolor: "grey.300",
-          border: '2px solid #4682B4'
+          boxSizing: 'border-box',
         }}>
           <ChatStarter />
         </Box>

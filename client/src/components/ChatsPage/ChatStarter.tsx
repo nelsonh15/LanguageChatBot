@@ -12,9 +12,11 @@ const ChatStarter: React.FC = () => {
       flexDirection: 'column' as const,
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100vh',
+      minHeight: '100vh',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
+      boxSizing: 'border-box',
+      bgcolor: "grey.200",
     },
     text: {
       fontSize: isMobile ? '1.5rem' : '2rem',

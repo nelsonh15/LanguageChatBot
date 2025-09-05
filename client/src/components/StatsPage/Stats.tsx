@@ -12,7 +12,7 @@ const placeholderChart = (
 
 const Stats = () => {
   return (
-    <Box sx={{ p: { xs: 1, md: 4 }, bgcolor: 'grey.100', minHeight: '100vh' }}>
+    <Box sx={{ p: { xs: 1, md: 4 }, bgcolor: 'grey.100', minHeight: '100vh', boxSizing: 'border-box' }}>
       <Typography variant="h4" gutterBottom fontWeight={700}>
         Language Learning Dashboard
       </Typography>
